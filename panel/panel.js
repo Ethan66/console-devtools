@@ -26,12 +26,14 @@ function initPanel() {
   filterInputEl = document.getElementById('filterInput')
   clearBtnEl = document.getElementById('clearBtn')
   exportBtnEl = document.getElementById('exportBtn')
+  treeDropdownEl = document.getElementById('treeDropdown')
 
   console.log('[Panel] DOM elements:', {
     logContentEl: !!logContentEl,
     filterInputEl: !!filterInputEl,
     clearBtnEl: !!clearBtnEl,
-    exportBtnEl: !!exportBtnEl
+    exportBtnEl: !!exportBtnEl,
+    treeDropdownEl: !!treeDropdownEl
   })
 
   // 连接到 background
@@ -48,7 +50,9 @@ function initPanel() {
         console.log('[Panel] Single message:', message)
         messages.push(message)
       }
+      rebuildTreeNodes()
       render()
+      renderTreeDropdown()
     })
 
     port.onDisconnect.addListener(() => {
@@ -71,7 +75,19 @@ function initPanel() {
   }
   if (filterInputEl) {
     filterInputEl.addEventListener('input', handleFilter)
+    filterInputEl.addEventListener('focus', handleFocus)
+    filterInputEl.addEventListener('blur', () => {
+      // 延迟关闭，允许点击下拉项
+      setTimeout(() => hideDropdown(), 200)
+    })
   }
+
+  // 点击外部关闭下拉
+  document.addEventListener('click', (e) => {
+    if (!filterInputEl.contains(e.target) && !treeDropdownEl.contains(e.target)) {
+      hideDropdown()
+    }
+  })
 
   // 初始渲染
   render()
