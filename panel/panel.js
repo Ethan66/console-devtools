@@ -435,11 +435,67 @@ function handleFilter(e) {
   filterKeyword = e.target.value.toLowerCase()
   // 输入时清空选中的节点
   selectedNodeId = null
+  keyboardIndex = -1 // 重置键盘导航
   render()
   // 有输入时显示下拉框
   if (filterKeyword) {
     showDropdown()
   }
+}
+
+// 键盘导航
+function handleKeydown(e) {
+  if (!treeDropdownEl.classList.contains('show')) {
+    // 按下箭头时显示下拉框
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      showDropdown()
+    }
+    return
+  }
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault()
+      if (keyboardIndex < displayedNodes.length - 1) {
+        keyboardIndex++
+        highlightSelectedNode()
+      }
+      break
+
+    case 'ArrowUp':
+      e.preventDefault()
+      if (keyboardIndex > 0) {
+        keyboardIndex--
+        highlightSelectedNode()
+      }
+      break
+
+    case 'Enter':
+      e.preventDefault()
+      if (keyboardIndex >= 0 && keyboardIndex < displayedNodes.length) {
+        handleNodeSelect(displayedNodes[keyboardIndex].id)
+      }
+      break
+
+    case 'Escape':
+      hideDropdown()
+      filterInputEl.blur()
+      break
+  }
+}
+
+// 高亮显示下拉框中选中的节点
+function highlightSelectedNode() {
+  const nodes = treeDropdownEl.querySelectorAll('.tree-node')
+  nodes.forEach((node, index) => {
+    if (index === keyboardIndex) {
+      node.classList.add('selected')
+      node.scrollIntoView({ block: 'nearest' })
+    } else {
+      node.classList.remove('selected')
+    }
+  })
 }
 
 function handleNodeSelect(nodeId) {
