@@ -151,36 +151,34 @@ function containsSelectedNode(msg, nodeId) {
 
 // 重建树节点（扁平化用于下拉选项）
 function rebuildTreeNodes() {
-  treeNodes = []
-  const nodeMap = new Map() // 用于去重，key: level-key-path
+  const nodeMap = new Map() // key: level-key-path, value: node
 
   messages.forEach((msg, msgIndex) => {
     Object.keys(msg.zfn || {}).forEach(key => {
       const childMsg = msg.zfn[key]
       const uniqueKey = `0-${key}-${childMsg.path || ''}`
 
-      // 根节点也去重
-      let rootNodeId = nodeMap.get(uniqueKey)
-
-      if (!rootNodeId) {
-        const newNode = {
-          id: `root-${key}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      // 根节点去重
+      if (!nodeMap.has(uniqueKey)) {
+        nodeMap.set(uniqueKey, {
+          id: `root-${key}`,
           key,
           path: childMsg.path || '',
           level: 0,
           parentId: null,
           originalData: childMsg,
-          expanded: true
-        }
-        treeNodes.push(newNode)
-        rootNodeId = newNode.id
-        nodeMap.set(uniqueKey, rootNodeId)
+          expanded: true,
+          childrenIds: new Set()
+        })
       }
 
       // 递归处理子节点（去重）
-      buildChildNodes(childMsg, rootNodeId, 1, nodeMap)
+      buildChildNodes(childMsg, `root-${key}`, 1, nodeMap)
     })
   })
+
+  // 转换为数组
+  treeNodes = Array.from(nodeMap.values())
 }
 
 function buildChildNodes(message, parentId, level, nodeMap) {
@@ -188,32 +186,28 @@ function buildChildNodes(message, parentId, level, nodeMap) {
     const childMsg = message.zfn[key]
     const uniqueKey = `${level}-${key}-${childMsg.path || ''}`
 
-    // 检查是否已存在该节点
-    let existingNodeId = nodeMap.get(uniqueKey)
-    let existingNode = treeNodes.find(n => n.id === existingNodeId)
-
-    if (!existingNode) {
-      // 创建新节点
-      const newNode = {
-        id: `node-${level}-${key}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    if (!nodeMap.has(uniqueKey)) {
+      const nodeId = `level-${level}-${key}`
+      nodeMap.set(uniqueKey, {
+        id: nodeId,
         key,
         path: childMsg.path || '',
         level,
         parentId,
         originalData: childMsg,
-        expanded: true
-      }
+        expanded: true,
+        childrenIds: new Set()
+      })
+    }
 
-      treeNodes.push(newNode)
-      nodeMap.set(uniqueKey, newNode.id)
-      existingNode = newNode
-    } else if (existingNode.parentId !== parentId) {
-      // 节点已存在但父节点不同，更新父节点为当前父节点
-      existingNode.parentId = parentId
+    // 将当前节点添加到父节点的 childrenIds
+    const parentNode = Array.from(nodeMap.values()).find(n => n.id === parentId)
+    if (parentNode) {
+      parentNode.childrenIds.add(nodeMap.get(uniqueKey).id)
     }
 
     // 递归处理子节点
-    buildChildNodes(childMsg, existingNode.id, level + 1, nodeMap)
+    buildChildNodes(childMsg, nodeMap.get(uniqueKey).id, level + 1, nodeMap)
   })
 }
 
