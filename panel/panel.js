@@ -437,6 +437,9 @@ function renderTreeDropdown() {
   visibleNodes.forEach(node => {
     const nodeEl = document.createElement('div')
     nodeEl.className = 'tree-node'
+    if (node.level > 0 && node.level <= 5) {
+      nodeEl.classList.add(`level-${node.level}`)
+    }
     if (node.id === selectedNodeId) {
       nodeEl.classList.add('selected')
     }
