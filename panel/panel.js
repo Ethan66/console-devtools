@@ -1,0 +1,221 @@
+// panel/panel.js - DevTools 面板主脚本
+console.log('[Panel] panel.js loaded')
+
+// 全局状态
+let messages = []
+let filterKeyword = ''
+
+// DOM 元素
+let logContentEl = null
+let filterInputEl = null
+let clearBtnEl = null
+let exportBtnEl = null
+
+// Port 连接
+let port = null
+
+// 初始化
+function initPanel() {
+  console.log('[Panel] initPanel called')
+
+  logContentEl = document.getElementById('logContent')
+  filterInputEl = document.getElementById('filterInput')
+  clearBtnEl = document.getElementById('clearBtn')
+  exportBtnEl = document.getElementById('exportBtn')
+
+  console.log('[Panel] DOM elements:', {
+    logContentEl: !!logContentEl,
+    filterInputEl: !!filterInputEl,
+    clearBtnEl: !!clearBtnEl,
+    exportBtnEl: !!exportBtnEl
+  })
+
+  // 连接到 background
+  try {
+    port = chrome.runtime.connect({ name: 'console-devtools-panel' })
+    console.log('[Panel] Connected to background, port:', port)
+
+    port.onMessage.addListener((message) => {
+      console.log('[Panel] Received message:', message)
+      if (message.type === 'BUFFERED_MESSAGES') {
+        console.log('[Panel] Buffered messages count:', message.data?.length)
+        messages = [...messages, ...message.data]
+      } else {
+        console.log('[Panel] Single message:', message)
+        messages.push(message)
+      }
+      render()
+    })
+
+    port.onDisconnect.addListener(() => {
+      console.log('[Panel] Port disconnected')
+      port = null
+    })
+
+    port.postMessage({ type: 'PANEL_READY' })
+    console.log('[Panel] Sent PANEL_READY message')
+  } catch (e) {
+    console.error('[Panel] Failed to connect to background:', e)
+  }
+
+  // 绑定事件
+  if (clearBtnEl) {
+    clearBtnEl.addEventListener('click', handleClear)
+  }
+  if (exportBtnEl) {
+    exportBtnEl.addEventListener('click', handleExport)
+  }
+  if (filterInputEl) {
+    filterInputEl.addEventListener('input', handleFilter)
+  }
+
+  // 初始渲染
+  render()
+  console.log('[Panel] Panel initialized')
+}
+
+// 清空按钮
+function handleClear() {
+  messages = []
+  render()
+}
+
+// 导出按钮
+function handleExport() {
+  if (messages.length === 0) {
+    alert('暂无数据可导出')
+    return
+  }
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+  const filename = `console-devtools-${timestamp}.json`
+  const data = JSON.stringify(messages, null, 2)
+  const blob = new Blob([data], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// 过滤输入
+function handleFilter(e) {
+  filterKeyword = e.target.value.toLowerCase()
+  render()
+}
+
+// 检查是否包含关键字
+function containsKeyword(msg, keyword) {
+  const keys = Object.keys(msg.zfn || {})
+  return keys.some(key => key.toLowerCase().includes(keyword))
+}
+
+// 渲染日志树
+function render() {
+  if (!logContentEl) {
+    console.error('[Panel] logContentEl not found')
+    return
+  }
+
+  const filtered = filterKeyword
+    ? messages.filter(msg => containsKeyword(msg, filterKeyword))
+    : messages
+
+  if (filtered.length === 0) {
+    logContentEl.innerHTML = '<div class="empty-state">' + (messages.length === 0 ? '暂无日志数据' : '未找到匹配的节点') + '</div>'
+    return
+  }
+
+  logContentEl.innerHTML = ''
+  filtered.forEach(msg => {
+    const nodeEl = createLogNode(msg, 0)
+    logContentEl.appendChild(nodeEl)
+  })
+}
+
+// 创建日志节点
+function createLogNode(message, level) {
+  const container = document.createElement('div')
+  container.className = 'log-node'
+
+  Object.keys(message.zfn || {}).forEach(key => {
+    const childMsg = message.zfn[key]
+
+    // 创建 item
+    const itemEl = document.createElement('div')
+    itemEl.className = 'log-item'
+
+    // 创建 header
+    const headerEl = document.createElement('div')
+    headerEl.className = 'log-item-header'
+    headerEl.style.paddingLeft = `${level * 16 + 8}px`
+
+    const iconEl = document.createElement('span')
+    iconEl.className = 'expand-icon'
+    iconEl.textContent = '▼'
+
+    const keyEl = document.createElement('span')
+    keyEl.className = 'log-key'
+    keyEl.textContent = key
+
+    headerEl.appendChild(iconEl)
+    headerEl.appendChild(keyEl)
+
+    // 创建内容（默认展开）
+    const contentEl = document.createElement('div')
+    contentEl.className = 'log-item-content'
+    contentEl.style.display = 'block'
+
+    // path 行
+    const pathRowEl = document.createElement('div')
+    pathRowEl.className = 'log-row'
+    pathRowEl.innerHTML = `
+      <span class="log-label">path:</span>
+      <span class="log-value">${childMsg.path || ''}</span>
+      <button class="copy-btn">复制</button>
+    `
+    const copyBtn = pathRowEl.querySelector('.copy-btn')
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      navigator.clipboard.writeText(childMsg.path || '').then(() => {
+        copyBtn.textContent = '已复制!'
+        setTimeout(() => copyBtn.textContent = '复制', 1000)
+      })
+    })
+    contentEl.appendChild(pathRowEl)
+
+    // params 行
+    if (childMsg.params && Object.keys(childMsg.params).length > 0) {
+      const paramsRowEl = document.createElement('div')
+      paramsRowEl.className = 'log-row'
+      paramsRowEl.innerHTML = `
+        <span class="log-label">params:</span>
+        <pre class="log-json">${JSON.stringify(childMsg.params, null, 2)}</pre>
+      `
+      contentEl.appendChild(paramsRowEl)
+    }
+
+    // 递归子节点
+    if (childMsg.zfn && Object.keys(childMsg.zfn).length > 0) {
+      const childNodeEl = createLogNode(childMsg, level + 1)
+      contentEl.appendChild(childNodeEl)
+    }
+
+    // 点击展开/折叠
+    let isExpanded = true
+    headerEl.addEventListener('click', () => {
+      isExpanded = !isExpanded
+      contentEl.style.display = isExpanded ? 'block' : 'none'
+      iconEl.textContent = isExpanded ? '▼' : '▶'
+    })
+
+    itemEl.appendChild(headerEl)
+    itemEl.appendChild(contentEl)
+    container.appendChild(itemEl)
+  })
+
+  return container
+}
+
+// DOM 加载完成后初始化
+document.addEventListener('DOMContentLoaded', initPanel)
