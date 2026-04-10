@@ -7,6 +7,10 @@ let filterKeyword = ''
 let selectedNodeId = null
 let treeNodes = [] // 扁平化的树节点用于下拉选项
 
+// 键盘导航状态
+let keyboardIndex = -1 // 当前选中的下拉节点索引
+let displayedNodes = [] // 当前下拉框显示的节点
+
 // DOM 元素
 let logContentEl = null
 let filterInputEl = null
