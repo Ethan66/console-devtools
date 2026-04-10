@@ -97,7 +97,14 @@ function initPanel() {
 // 清空按钮
 function handleClear() {
   messages = []
+  treeNodes = []
+  selectedNodeId = null
+  filterKeyword = ''
+  if (filterInputEl) {
+    filterInputEl.value = ''
+  }
   render()
+  renderTreeDropdown()
 }
 
 // 导出按钮
