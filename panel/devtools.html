@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>DevTools Test</title>
+  <link rel="stylesheet" href="devtools.css">
 </head>
-<body style="background: yellow; padding: 20px;">
-  <h1 style="color: red;">如果你能看到这个黄色页面，说明 DevTools HTML 加载成功了！</h1>
+<body>
+  <h1>如果你能看到这个页面，说明 DevTools HTML 加载成功了！</h1>
   <p>当前时间: <span id="time"></span></p>
-  <script>
-    document.getElementById('time').textContent = new Date().toLocaleString();
-    console.log('[DevTools HTML] 页面已加载');
-    alert('DevTools 页面已加载！如果你看到这个弹窗，说明扩展工作正常。');
-  </script>
+  <p id="status">正在初始化...</p>
+  <button onclick="testPanel()">测试面板功能</button>
+  <script src="devtools.js"></script>
 </body>
 </html>

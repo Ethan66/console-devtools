@@ -1,0 +1,32 @@
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+button {
+  padding: 10px 20px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+button:hover {
+  background: #f0f0f0;
+}

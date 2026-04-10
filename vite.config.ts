@@ -3,10 +3,13 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 
 export default defineConfig({
+  root: 'panel',
+  base: './',
   plugins: [vue()],
   build: {
-    outDir: 'panel/dist',
+    outDir: './dist',
     emptyOutDir: true,
+    cssCodeSplit: false,
     rollupOptions: {
       input: resolve(__dirname, 'panel/index.html'),
       output: {

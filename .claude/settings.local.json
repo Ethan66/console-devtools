@@ -10,7 +10,8 @@
       "Bash(npm --version)",
       "Bash(npm cache:*)",
       "Bash(npm run:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(yarn build:*)"
     ]
   }
 }
