@@ -447,8 +447,8 @@ function handleNodeSelect(nodeId) {
   if (node) {
     // 设置输入框显示选中的 key
     filterInputEl.value = node.key
-    // 清空关键字过滤，使用选中节点过滤
-    filterKeyword = ''
+    // 使用选中的 key 作为过滤关键字
+    filterKeyword = node.key.toLowerCase()
     render()
   }
   hideDropdown()
