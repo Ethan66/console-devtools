@@ -103,10 +103,14 @@
       font-size: 10px;
       color: #999;
       user-select: none;
+      flex-shrink: 0;
     }
     .tree-node-key {
       color: #1976d2;
       font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .tree-node.selected .tree-node-key {
       color: #1976d2;
