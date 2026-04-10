@@ -299,7 +299,7 @@ function render() {
 
   logContentEl.innerHTML = ''
   filtered.forEach(msg => {
-    const nodeEl = createLogNode(msg, 0)
+    const nodeEl = createLogNode(msg, 0, filterKeyword)
     logContentEl.appendChild(nodeEl)
   })
 
