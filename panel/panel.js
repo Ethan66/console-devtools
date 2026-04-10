@@ -427,6 +427,7 @@ function showDropdown() {
 function hideDropdown() {
   if (!treeDropdownEl) return
   treeDropdownEl.classList.remove('show')
+  keyboardIndex = -1 // 隐藏时重置键盘导航
 }
 
 function handleFocus() {
