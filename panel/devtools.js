@@ -5,7 +5,7 @@ console.log('[Console DevTools] DevTools page loaded')
 chrome.devtools.panels.create(
   'Console DevTools',
   '',
-  'index.html',
+  'dist/index.html',
   function(panel) {
     console.log('[Console DevTools] Panel created')
 
