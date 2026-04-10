@@ -179,17 +179,26 @@
 
     // 连接到 background
     const port = chrome.runtime.connect({ name: 'console-devtools-panel' })
-    console.log('[Panel] Connected to background')
+    console.log('[Panel] Connected to background, port:', port)
 
     port.onMessage.addListener((message) => {
       console.log('[Panel] Received message:', message)
       if (message.type === 'BUFFERED_MESSAGES') {
+        console.log('[Panel] Buffered messages count:', message.data?.length)
         messages = [...messages, ...message.data]
       } else {
+        console.log('[Panel] Single message:', message)
         messages.push(message)
       }
       render()
     })
+
+    port.onDisconnect.addListener(() => {
+      console.log('[Panel] Port disconnected')
+    })
+
+    port.postMessage({ type: 'PANEL_READY' })
+    console.log('[Panel] Sent PANEL_READY message')
 
     // 清空按钮
     clearBtnEl.addEventListener('click', () => {
