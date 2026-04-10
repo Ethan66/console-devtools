@@ -130,6 +130,78 @@ function containsKeyword(msg, keyword) {
   return keys.some(key => key.toLowerCase().includes(keyword))
 }
 
+// 重建树节点（扁平化用于下拉选项）
+function rebuildTreeNodes() {
+  treeNodes = []
+  const keyCount = new Map() // 用于生成唯一 id
+
+  messages.forEach((msg, msgIndex) => {
+    Object.keys(msg.zfn || {}).forEach(key => {
+      const childMsg = msg.zfn[key]
+      const id = `msg-${msgIndex}-key-${key}`
+
+      treeNodes.push({
+        id,
+        key,
+        path: childMsg.path || '',
+        level: 0,
+        parentId: null,
+        originalData: childMsg,
+        expanded: true
+      })
+
+      // 递归处理子节点
+      buildChildNodes(childMsg, id, 1, keyCount)
+    })
+  })
+}
+
+function buildChildNodes(message, parentId, level, keyCount) {
+  Object.keys(message.zfn || {}).forEach(key => {
+    const childMsg = message.zfn[key]
+    const count = keyCount.get(key) || 0
+    keyCount.set(key, count + 1)
+    const id = `${parentId}-child-${key}-${count}`
+
+    treeNodes.push({
+      id,
+      key,
+      path: childMsg.path || '',
+      level,
+      parentId,
+      originalData: childMsg,
+      expanded: true
+    })
+
+    // 递归处理子节点
+    buildChildNodes(childMsg, id, level + 1, keyCount)
+  })
+}
+
+// 筛选树节点
+function filterTreeNodes(keyword) {
+  if (!keyword) {
+    return treeNodes.filter(node => node.level === 0)
+  }
+
+  const lowerKeyword = keyword.toLowerCase()
+  const matchedNodes = treeNodes.filter(node =>
+    node.key.toLowerCase().includes(lowerKeyword)
+  )
+
+  // 返回匹配的节点以及它们的父节点（用于显示层级）
+  const resultNodes = new Set()
+  matchedNodes.forEach(node => {
+    let currentNode = node
+    while (currentNode) {
+      resultNodes.add(currentNode)
+      currentNode = treeNodes.find(n => n.id === currentNode.parentId)
+    }
+  })
+
+  return Array.from(resultNodes).sort((a, b) => a.level - b.level)
+}
+
 // 渲染日志树
 function render() {
   if (!logContentEl) {
