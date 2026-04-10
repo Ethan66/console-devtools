@@ -130,11 +130,20 @@ function handleFilter(e) {
   render()
 }
 
-// 检查是否包含关键字
+// 检查是否包含关键字（递归检查）
 function containsKeyword(msg, keyword) {
   if (!keyword) return true
-  const keys = Object.keys(msg.zfn || {})
-  return keys.some(key => key.toLowerCase().includes(keyword))
+
+  function checkNode(node) {
+    const keys = Object.keys(node.zfn || {})
+    if (keys.some(key => key.toLowerCase().includes(keyword))) {
+      return true
+    }
+    // 递归检查子节点
+    return keys.some(key => checkNode(node.zfn[key]))
+  }
+
+  return checkNode(msg)
 }
 
 // 检查消息是否包含选中的节点
