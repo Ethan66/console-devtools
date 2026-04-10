@@ -157,21 +157,28 @@ function rebuildTreeNodes() {
   messages.forEach((msg, msgIndex) => {
     Object.keys(msg.zfn || {}).forEach(key => {
       const childMsg = msg.zfn[key]
-      const rootId = `root-${msgIndex}-${key}`
+      const uniqueKey = `0-${key}-${childMsg.path || ''}`
 
-      // 根节点不合并，每条消息独立显示
-      treeNodes.push({
-        id: rootId,
-        key,
-        path: childMsg.path || '',
-        level: 0,
-        parentId: null,
-        originalData: childMsg,
-        expanded: true
-      })
+      // 根节点也去重
+      let rootNodeId = nodeMap.get(uniqueKey)
+
+      if (!rootNodeId) {
+        const newNode = {
+          id: `root-${key}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          key,
+          path: childMsg.path || '',
+          level: 0,
+          parentId: null,
+          originalData: childMsg,
+          expanded: true
+        }
+        treeNodes.push(newNode)
+        rootNodeId = newNode.id
+        nodeMap.set(uniqueKey, rootNodeId)
+      }
 
       // 递归处理子节点（去重）
-      buildChildNodes(childMsg, rootId, 1, nodeMap)
+      buildChildNodes(childMsg, rootNodeId, 1, nodeMap)
     })
   })
 }
@@ -182,7 +189,8 @@ function buildChildNodes(message, parentId, level, nodeMap) {
     const uniqueKey = `${level}-${key}-${childMsg.path || ''}`
 
     // 检查是否已存在该节点
-    let existingNode = treeNodes.find(n => n.id === nodeMap.get(uniqueKey))
+    let existingNodeId = nodeMap.get(uniqueKey)
+    let existingNode = treeNodes.find(n => n.id === existingNodeId)
 
     if (!existingNode) {
       // 创建新节点
@@ -199,6 +207,9 @@ function buildChildNodes(message, parentId, level, nodeMap) {
       treeNodes.push(newNode)
       nodeMap.set(uniqueKey, newNode.id)
       existingNode = newNode
+    } else if (existingNode.parentId !== parentId) {
+      // 节点已存在但父节点不同，更新父节点为当前父节点
+      existingNode.parentId = parentId
     }
 
     // 递归处理子节点
