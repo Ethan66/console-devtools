@@ -217,7 +217,10 @@
     </header>
     <main class="main">
       <div class="control-panel">
-        <input type="text" id="filterInput" placeholder="输入关键字筛选..." class="filter-input" />
+        <div class="filter-wrapper">
+          <input type="text" id="filterInput" placeholder="输入关键字或点击选择节点..." class="filter-input" autocomplete="off" />
+          <div id="treeDropdown" class="tree-dropdown"></div>
+        </div>
         <button id="clearBtn" class="btn btn-danger">清空树结构</button>
         <button id="exportBtn" class="btn btn-primary">导出 JSON</button>
       </div>
