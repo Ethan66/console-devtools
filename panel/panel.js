@@ -405,6 +405,8 @@ function handleFocus() {
 
 function handleFilter(e) {
   filterKeyword = e.target.value.toLowerCase()
+  // 输入时清空选中的节点
+  selectedNodeId = null
   render()
   // 有输入时显示下拉框
   if (filterKeyword) {
