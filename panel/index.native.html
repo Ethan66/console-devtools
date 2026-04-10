@@ -114,7 +114,8 @@
     .log-row {
       display: flex;
       padding: 4px 8px;
-      align-items: flex-start;
+      align-items: center;
+      gap: 8px;
     }
     .log-label {
       color: #666;
@@ -124,9 +125,11 @@
     .log-value {
       color: #333;
       word-break: break-all;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .copy-btn {
-      margin-left: auto;
       padding: 2px 8px;
       background: #1976d2;
       color: #fff;
@@ -134,6 +137,7 @@
       border-radius: 3px;
       font-size: 11px;
       cursor: pointer;
+      flex-shrink: 0;
     }
     .copy-btn:hover {
       background: #1565c0;
