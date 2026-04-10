@@ -282,14 +282,9 @@ function render() {
 
   let filtered = messages
 
-  // 根据关键字过滤（输入框输入时）
+  // 根据关键字过滤（输入框输入时或选中节点时）
   if (filterKeyword) {
     filtered = filtered.filter(msg => containsKeyword(msg, filterKeyword))
-  }
-
-  // 根据选中的节点过滤（点击下拉选项时）
-  if (selectedNodeId && !filterKeyword) {
-    filtered = filtered.filter(msg => containsSelectedNode(msg, selectedNodeId))
   }
 
   if (filtered.length === 0) {
