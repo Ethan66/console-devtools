@@ -45,13 +45,71 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      position: relative;
+    }
+    .filter-wrapper {
+      flex: 1;
+      position: relative;
     }
     .filter-input {
-      flex: 1;
+      width: 100%;
       padding: 6px 12px;
       border: 1px solid #d0d0d0;
       border-radius: 4px;
       font-size: 13px;
+    }
+    .filter-input:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+    .tree-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      margin-top: 4px;
+      display: none;
+    }
+    .tree-dropdown.show {
+      display: block;
+    }
+    .tree-node {
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tree-node:hover {
+      background: #f0f0f0;
+    }
+    .tree-node.selected {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .tree-node-indent {
+      display: inline-block;
+      width: 16px;
+      text-align: center;
+      font-size: 10px;
+      color: #999;
+      user-select: none;
+    }
+    .tree-node-key {
+      color: #1976d2;
+      font-weight: 500;
+    }
+    .tree-node.selected .tree-node-key {
+      color: #1976d2;
     }
     .btn {
       padding: 6px 12px;
