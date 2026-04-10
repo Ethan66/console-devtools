@@ -310,12 +310,21 @@ function render() {
 }
 
 // 创建日志节点
-function createLogNode(message, level) {
+function createLogNode(message, level, keyword = '') {
   const container = document.createElement('div')
   container.className = 'log-node'
 
   Object.keys(message.zfn || {}).forEach(key => {
     const childMsg = message.zfn[key]
+
+    // 如果有 keyword，检查是否需要显示该节点
+    if (keyword) {
+      const matches = key.toLowerCase().includes(keyword)
+      // 如果不匹配且子节点也不匹配，跳过
+      if (!matches && !hasMatchingChild(childMsg, keyword)) {
+        return
+      }
+    }
 
     // 创建 item
     const itemEl = document.createElement('div')
@@ -373,7 +382,7 @@ function createLogNode(message, level) {
 
     // 递归子节点
     if (childMsg.zfn && Object.keys(childMsg.zfn).length > 0) {
-      const childNodeEl = createLogNode(childMsg, level + 1)
+      const childNodeEl = createLogNode(childMsg, level + 1, keyword)
       contentEl.appendChild(childNodeEl)
     }
 
@@ -391,6 +400,15 @@ function createLogNode(message, level) {
   })
 
   return container
+}
+
+// 检查节点或其子节点是否匹配关键字
+function hasMatchingChild(message, keyword) {
+  const keys = Object.keys(message.zfn || {})
+  if (keys.some(key => key.toLowerCase().includes(keyword))) {
+    return true
+  }
+  return keys.some(key => hasMatchingChild(message.zfn[key], keyword))
 }
 
 // DOM 加载完成后初始化
