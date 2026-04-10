@@ -375,8 +375,8 @@ function handleNodeSelect(nodeId) {
   if (node) {
     // 设置输入框显示选中的 key
     filterInputEl.value = node.key
-    // 过滤日志显示该节点的数据
-    filterKeyword = node.key.toLowerCase()
+    // 清空关键字过滤，使用选中节点过滤
+    filterKeyword = ''
     render()
   }
   hideDropdown()
