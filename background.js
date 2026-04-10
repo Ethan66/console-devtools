@@ -10,12 +10,15 @@ let panelPort = null
 
 // 监听 content script 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[Background] Received message:', request.type, request.data ? 'with data' : 'no data', 'from:', sender.tab?.id || 'devtools')
   if (request.type === 'CONSOLE_DEVTOOLS_CONTENT_READY') {
     console.log('[Console DevTools] Content script ready')
     sendResponse({ status: 'ok' })
   } else if (request.type === 'CONSOLE_DEVTOOLS_MESSAGE') {
+    console.log('[Background] Message received, panelPort:', panelPort ? 'connected' : 'not connected', 'buffer size:', messageBuffer.length)
     // 如果有 panel 连接，直接转发
     if (panelPort) {
+      console.log('[Background] Forwarding to panel')
       panelPort.postMessage(request.data)
     } else {
       // 否则缓存消息
@@ -23,6 +26,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         messageBuffer.shift() // 移除最旧的消息
       }
       messageBuffer.push(request.data)
+      console.log('[Background] Message buffered, total:', messageBuffer.length)
     }
     sendResponse({ status: 'ok' })
   }
@@ -31,12 +35,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 监听 panel 连接
 chrome.runtime.onConnect.addListener((port) => {
+  console.log('[Background] onConnect:', port.name)
   if (port.name === 'console-devtools-panel') {
     console.log('[Console DevTools] Panel connected')
     panelPort = port
 
     // 发送缓存的消息
     if (messageBuffer.length > 0) {
+      console.log('[Background] Sending buffered messages:', messageBuffer.length)
       port.postMessage({
         type: 'BUFFERED_MESSAGES',
         data: messageBuffer
