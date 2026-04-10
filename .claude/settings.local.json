@@ -11,7 +11,8 @@
       "Bash(npm cache:*)",
       "Bash(npm run:*)",
       "Bash(git reset:*)",
-      "Bash(yarn build:*)"
+      "Bash(yarn build:*)",
+      "Bash(Move-Item:*)"
     ]
   }
 }

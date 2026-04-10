@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console DevTools</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      color: #333;
+      background: #f5f5f5;
+    }
+    #app {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .control-panel {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .filter-input {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: #1976d2;
+      color: #fff;
+    }
+    .btn-danger {
+      background: #d32f2f;
+      color: #fff;
+    }
+    .log-container {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    .log-tree {
+      font-size: 12px;
+    }
+    .log-item {
+      margin-bottom: 4px;
+    }
+    .log-item-header {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .log-item-header:hover {
+      background: #f0f0f0;
+    }
+    .expand-icon {
+      display: inline-block;
+      width: 16px;
+      text-align: center;
+      color: #666;
+      font-size: 10px;
+    }
+    .log-key {
+      color: #1976d2;
+      font-weight: 500;
+    }
+    .log-item-content {
+      padding: 4px 0;
+      border-left: 1px solid #e0e0e0;
+      margin-left: 24px;
+    }
+    .log-row {
+      display: flex;
+      padding: 4px 8px;
+      align-items: flex-start;
+    }
+    .log-label {
+      color: #666;
+      min-width: 60px;
+      flex-shrink: 0;
+    }
+    .log-value {
+      color: #333;
+      word-break: break-all;
+    }
+    .copy-btn {
+      margin-left: auto;
+      padding: 2px 8px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background: #1565c0;
+    }
+    .log-json {
+      margin: 0;
+      padding: 4px 8px;
+      background: #f5f5f5;
+      border-radius: 3px;
+      font-size: 11px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>Console DevTools</h1>
+    </header>
+    <main class="main">
+      <div class="control-panel">
+        <input type="text" id="filterInput" placeholder="输入关键字筛选..." class="filter-input" />
+        <button id="clearBtn" class="btn btn-danger">清空树结构</button>
+        <button id="exportBtn" class="btn btn-primary">导出 JSON</button>
+      </div>
+      <div class="log-container">
+        <div id="logContent" class="log-tree"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 全局状态
+    let messages = []
+    let expandedKeys = new Set()
+    let filterKeyword = ''
+
+    // DOM 元素
+    const logContentEl = document.getElementById('logContent')
+    const filterInputEl = document.getElementById('filterInput')
+    const clearBtnEl = document.getElementById('clearBtn')
+    const exportBtnEl = document.getElementById('exportBtn')
+
+    // 连接到 background
+    const port = chrome.runtime.connect({ name: 'console-devtools-panel' })
+    console.log('[Panel] Connected to background')
+
+    port.onMessage.addListener((message) => {
+      console.log('[Panel] Received message:', message)
+      if (message.type === 'BUFFERED_MESSAGES') {
+        messages = [...messages, ...message.data]
+      } else {
+        messages.push(message)
+      }
+      render()
+    })
+
+    // 清空按钮
+    clearBtnEl.addEventListener('click', () => {
+      messages = []
+      render()
+    })
+
+    // 导出按钮
+    exportBtnEl.addEventListener('click', () => {
+      if (messages.length === 0) {
+        alert('暂无数据可导出')
+        return
+      }
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+      const filename = `console-devtools-${timestamp}.json`
+      const data = JSON.stringify(messages, null, 2)
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+
+    // 过滤输入
+    filterInputEl.addEventListener('input', (e) => {
+      filterKeyword = e.target.value.toLowerCase()
+      render()
+    })
+
+    // 检查是否包含关键字
+    function containsKeyword(msg, keyword) {
+      const keys = Object.keys(msg.zfn || {})
+      return keys.some(key => key.toLowerCase().includes(keyword))
+    }
+
+    // 渲染日志树
+    function render() {
+      const filtered = filterKeyword
+        ? messages.filter(msg => containsKeyword(msg, filterKeyword))
+        : messages
+
+      if (filtered.length === 0) {
+        logContentEl.innerHTML = '<div class="empty-state">' + (messages.length === 0 ? '暂无日志数据' : '未找到匹配的节点') + '</div>'
+        return
+      }
+
+      logContentEl.innerHTML = ''
+      filtered.forEach(msg => {
+        const nodeEl = createLogNode(msg, 0)
+        logContentEl.appendChild(nodeEl)
+      })
+    }
+
+    // 创建日志节点
+    function createLogNode(message, level) {
+      const container = document.createElement('div')
+      container.className = 'log-node'
+
+      Object.keys(message.zfn || {}).forEach(key => {
+        const childMsg = message.zfn[key]
+        const itemId = `${key}-${level}-${Date.now()}`
+
+        // 创建 item
+        const itemEl = document.createElement('div')
+        itemEl.className = 'log-item'
+
+        // 创建 header
+        const headerEl = document.createElement('div')
+        headerEl.className = 'log-item-header'
+        headerEl.style.paddingLeft = `${level * 16 + 8}px`
+
+        const iconEl = document.createElement('span')
+        iconEl.className = 'expand-icon'
+        iconEl.textContent = '▶'
+
+        const keyEl = document.createElement('span')
+        keyEl.className = 'log-key'
+        keyEl.textContent = key
+
+        headerEl.appendChild(iconEl)
+        headerEl.appendChild(keyEl)
+
+        // 创建内容
+        const contentEl = document.createElement('div')
+        contentEl.className = 'log-item-content'
+        contentEl.style.display = 'none'
+
+        // path 行
+        const pathRowEl = document.createElement('div')
+        pathRowEl.className = 'log-row'
+        pathRowEl.innerHTML = `
+          <span class="log-label">path:</span>
+          <span class="log-value">${childMsg.path || ''}</span>
+          <button class="copy-btn">复制</button>
+        `
+        const copyBtn = pathRowEl.querySelector('.copy-btn')
+        copyBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          navigator.clipboard.writeText(childMsg.path || '').then(() => {
+            copyBtn.textContent = '已复制!'
+            setTimeout(() => copyBtn.textContent = '复制', 1000)
+          })
+        })
+        contentEl.appendChild(pathRowEl)
+
+        // params 行
+        if (childMsg.params && Object.keys(childMsg.params).length > 0) {
+          const paramsRowEl = document.createElement('div')
+          paramsRowEl.className = 'log-row'
+          paramsRowEl.innerHTML = `
+            <span class="log-label">params:</span>
+            <pre class="log-json">${JSON.stringify(childMsg.params, null, 2)}</pre>
+          `
+          contentEl.appendChild(paramsRowEl)
+        }
+
+        // 递归子节点
+        if (childMsg.zfn && Object.keys(childMsg.zfn).length > 0) {
+          const childNodeEl = createLogNode(childMsg, level + 1)
+          contentEl.appendChild(childNodeEl)
+        }
+
+        // 点击展开/折叠 - 默认展开
+        let isExpanded = true
+        contentEl.style.display = 'block'
+        iconEl.textContent = '▼'
+
+        headerEl.addEventListener('click', () => {
+          isExpanded = !isExpanded
+          contentEl.style.display = isExpanded ? 'block' : 'none'
+          iconEl.textContent = isExpanded ? '▼' : '▶'
+        })
+
+        itemEl.appendChild(headerEl)
+        itemEl.appendChild(contentEl)
+        container.appendChild(itemEl)
+      })
+
+      return container
+    }
+
+    // 初始渲染
+    render()
+    console.log('[Panel] Native JS version initialized')
+  </script>
+</body>
+</html>
