@@ -83,6 +83,8 @@ function initPanel() {
       // 延迟关闭，允许点击下拉项
       setTimeout(() => hideDropdown(), 200)
     })
+    // 键盘导航
+    filterInputEl.addEventListener('keydown', handleKeydown)
   }
 
   // 点击外部关闭下拉
