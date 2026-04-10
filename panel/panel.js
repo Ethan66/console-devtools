@@ -411,18 +411,55 @@ function renderTreeDropdown() {
   }
 
   treeDropdownEl.innerHTML = ''
-  filtered.forEach(node => {
+
+  // 跟踪每个节点的展开状态
+  const visibleNodes = []
+  const expandedSet = expandedTreeKeys
+
+  function addVisibleNodes(nodes, parentExpanded = true) {
+    nodes.forEach(node => {
+      // 如果是根节点或者有父节点且父节点已展开
+      if (node.level === 0 || parentExpanded) {
+        visibleNodes.push(node)
+        // 如果有子节点且已展开，继续添加子节点
+        if (node.level < 10) { // 限制深度
+          const children = filtered.filter(n => n.parentId === node.id)
+          if (children.length > 0) {
+            addVisibleNodes(children, expandedSet.has(node.id))
+          }
+        }
+      }
+    })
+  }
+
+  addVisibleNodes(filtered)
+
+  visibleNodes.forEach(node => {
     const nodeEl = document.createElement('div')
     nodeEl.className = 'tree-node'
     if (node.id === selectedNodeId) {
       nodeEl.classList.add('selected')
     }
 
-    // 缩进
-    const indentEl = document.createElement('span')
-    indentEl.className = 'tree-node-indent'
-    indentEl.textContent = node.level > 0 ? '└' : ''
-    nodeEl.appendChild(indentEl)
+    // 展开/折叠图标（有子节点时显示）
+    const hasChildren = treeNodes.some(n => n.parentId === node.id)
+    const expandIconEl = document.createElement('span')
+    expandIconEl.className = 'tree-node-indent'
+    expandIconEl.style.cursor = hasChildren ? 'pointer' : 'default'
+    expandIconEl.textContent = hasChildren ? (expandedTreeKeys.has(node.id) ? '▼' : '▶') : (node.level > 0 ? '└' : '')
+
+    if (hasChildren) {
+      expandIconEl.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (expandedTreeKeys.has(node.id)) {
+          expandedTreeKeys.delete(node.id)
+        } else {
+          expandedTreeKeys.add(node.id)
+        }
+        renderTreeDropdown()
+      })
+    }
+    nodeEl.appendChild(expandIconEl)
 
     // 节点 key
     const keyEl = document.createElement('span')
