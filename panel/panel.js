@@ -311,3 +311,80 @@ function createLogNode(message, level) {
 
 // DOM 加载完成后初始化
 document.addEventListener('DOMContentLoaded', initPanel)
+
+// 下拉框相关函数
+function showDropdown() {
+  if (!treeDropdownEl) return
+  treeDropdownEl.classList.add('show')
+  renderTreeDropdown()
+}
+
+function hideDropdown() {
+  if (!treeDropdownEl) return
+  treeDropdownEl.classList.remove('show')
+}
+
+function handleFocus() {
+  showDropdown()
+}
+
+function handleFilter(e) {
+  filterKeyword = e.target.value.toLowerCase()
+  render()
+  // 有输入时显示下拉框
+  if (filterKeyword) {
+    showDropdown()
+  }
+}
+
+function handleNodeSelect(nodeId) {
+  selectedNodeId = nodeId
+  const node = treeNodes.find(n => n.id === nodeId)
+  if (node) {
+    // 设置输入框显示选中的 key
+    filterInputEl.value = node.key
+    // 过滤日志显示该节点的数据
+    filterKeyword = node.key.toLowerCase()
+    render()
+  }
+  hideDropdown()
+}
+
+function renderTreeDropdown() {
+  if (!treeDropdownEl) return
+
+  const filtered = filterTreeNodes(filterKeyword)
+
+  if (filtered.length === 0) {
+    treeDropdownEl.innerHTML = '<div class="tree-node" style="color: #999; justify-content: center;">暂无匹配节点</div>'
+    return
+  }
+
+  treeDropdownEl.innerHTML = ''
+  filtered.forEach(node => {
+    const nodeEl = document.createElement('div')
+    nodeEl.className = 'tree-node'
+    if (node.id === selectedNodeId) {
+      nodeEl.classList.add('selected')
+    }
+
+    // 缩进
+    const indentEl = document.createElement('span')
+    indentEl.className = 'tree-node-indent'
+    indentEl.textContent = node.level > 0 ? '└' : ''
+    nodeEl.appendChild(indentEl)
+
+    // 节点 key
+    const keyEl = document.createElement('span')
+    keyEl.className = 'tree-node-key'
+    keyEl.textContent = node.key
+    nodeEl.appendChild(keyEl)
+
+    // 点击选择
+    nodeEl.addEventListener('click', () => {
+      handleNodeSelect(node.id)
+    })
+
+    treeDropdownEl.appendChild(nodeEl)
+  })
+}
