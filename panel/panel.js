@@ -506,6 +506,7 @@ function handleNodeSelect(nodeId) {
     filterInputEl.value = node.key
     // 使用选中的 key 作为过滤关键字
     filterKeyword = node.key.toLowerCase()
+    keyboardIndex = -1 // 重置键盘导航
     render()
   }
   hideDropdown()
