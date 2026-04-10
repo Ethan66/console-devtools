@@ -166,6 +166,8 @@
   </div>
 
   <script>
+    console.log('[Panel] index.native.html script started')
+
     // 全局状态
     let messages = []
     let expandedKeys = new Set()
@@ -176,6 +178,8 @@
     const filterInputEl = document.getElementById('filterInput')
     const clearBtnEl = document.getElementById('clearBtn')
     const exportBtnEl = document.getElementById('exportBtn')
+
+    console.log('[Panel] DOM elements found:', { logContentEl, filterInputEl, clearBtnEl, exportBtnEl })
 
     // 连接到 background
     const port = chrome.runtime.connect({ name: 'console-devtools-panel' })
