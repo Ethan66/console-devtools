@@ -214,37 +214,49 @@ function buildChildNodes(message, parentId, level, nodeMap) {
 // 筛选树节点（保持树形结构）
 function filterTreeNodes(keyword) {
   if (!keyword) {
-    // 返回所有节点，保持层级关系
+    // 返回所有根节点及其子节点
     return getTreeDisplayNodes(treeNodes)
   }
 
   const lowerKeyword = keyword.toLowerCase()
 
   // 找到所有匹配的节点
-  const matchedIds = new Set()
-  treeNodes.forEach(node => {
-    if (node.key.toLowerCase().includes(lowerKeyword)) {
-      // 添加匹配节点及其所有祖先节点
-      let currentNode = node
-      while (currentNode) {
-        matchedIds.add(currentNode.id)
-        const parent = treeNodes.find(n => n.id === currentNode.parentId)
-        currentNode = parent
+  const matchedNodes = treeNodes.filter(node =>
+    node.key.toLowerCase().includes(lowerKeyword)
+  )
+
+  // 收集需要显示的节点（包括祖先节点）
+  const resultNodes = new Map()
+
+  function addNodeWithAncestors(node) {
+    if (resultNodes.has(node.id)) return
+
+    resultNodes.set(node.id, node)
+
+    // 添加父节点
+    if (node.parentId) {
+      const parent = treeNodes.find(n => n.id === node.parentId)
+      if (parent) {
+        addNodeWithAncestors(parent)
       }
     }
-  })
+  }
 
-  // 返回需要显示的节点（保持层级）
-  return getTreeDisplayNodes(treeNodes.filter(n => matchedIds.has(n.id)))
+  matchedNodes.forEach(node => addNodeWithAncestors(node))
+
+  // 返回树形结构的节点列表
+  return getTreeDisplayNodes(Array.from(resultNodes.values()))
 }
 
 // 获取树形显示的节点列表（根节点在前，子节点按顺序排列）
 function getTreeDisplayNodes(nodes) {
   const result = []
-  const rootNodes = nodes.filter(n => !n.parentId || n.level === 0)
+  const rootNodes = nodes.filter(n => n.level === 0)
 
   function addNodeWithChildren(node) {
     result.push(node)
+
+    // 查找子节点
     const children = nodes.filter(n => n.parentId === node.id)
     children.forEach(child => addNodeWithChildren(child))
   }
