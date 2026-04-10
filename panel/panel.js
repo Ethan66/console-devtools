@@ -4,12 +4,16 @@ console.log('[Panel] panel.js loaded')
 // 全局状态
 let messages = []
 let filterKeyword = ''
+let selectedNodeId = null
+let treeNodes = [] // 扁平化的树节点用于下拉选项
+let expandedTreeKeys = new Set() // 下拉树展开的 key
 
 // DOM 元素
 let logContentEl = null
 let filterInputEl = null
 let clearBtnEl = null
 let exportBtnEl = null
+let treeDropdownEl = null
 
 // Port 连接
 let port = null
