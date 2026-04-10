@@ -230,6 +230,11 @@ function render() {
     const nodeEl = createLogNode(msg, 0)
     logContentEl.appendChild(nodeEl)
   })
+
+  // 如果在渲染日志时有过滤，同时更新下拉框
+  if (treeDropdownEl && treeDropdownEl.classList.contains('show')) {
+    renderTreeDropdown()
+  }
 }
 
 // 创建日志节点
