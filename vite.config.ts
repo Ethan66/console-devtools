@@ -4,6 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
+  base: './',
   build: {
     outDir: 'panel/dist',
     emptyOutDir: true,

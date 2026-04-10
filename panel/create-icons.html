@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>创建图标</title>
+</head>
+<body>
+  <h2>正在生成图标...</h2>
+  <script>
+    // 创建简单的图标
+    function createIcon(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // 背景色
+      ctx.fillStyle = '#1976d2';
+      ctx.fillRect(0, 0, size, size);
+
+      // 文字
+      ctx.fillStyle = 'white';
+      ctx.font = `bold ${size * 0.5}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('C', size / 2, size / 2);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    // 下载图标
+    function downloadIcon(dataUrl, filename) {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = filename;
+      a.click();
+    }
+
+    // 生成并下载所有尺寸
+    window.onload = function() {
+      const sizes = [16, 48, 128];
+      sizes.forEach(size => {
+        const dataUrl = createIcon(size);
+        downloadIcon(dataUrl, `icon${size}.png`);
+      });
+
+      document.body.innerHTML = '<h2 style="color: green;">✓ 图标已生成并下载！</h2><p>请将下载的图标文件放到 <code>panel/dist/</code> 目录中</p>';
+    };
+  </script>
+</body>
+</html>
