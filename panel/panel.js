@@ -439,28 +439,9 @@ function renderTreeDropdown() {
   treeDropdownEl.innerHTML = ''
 
   // 跟踪每个节点的展开状态
-  const visibleNodes = []
   const expandedSet = expandedTreeKeys
 
-  function addVisibleNodes(nodes, parentExpanded = true) {
-    nodes.forEach(node => {
-      // 如果是根节点或者有父节点且父节点已展开
-      if (node.level === 0 || parentExpanded) {
-        visibleNodes.push(node)
-        // 如果有子节点且已展开，继续添加子节点
-        if (node.level < 10) { // 限制深度
-          const children = filtered.filter(n => n.parentId === node.id)
-          if (children.length > 0) {
-            addVisibleNodes(children, expandedSet.has(node.id))
-          }
-        }
-      }
-    })
-  }
-
-  addVisibleNodes(filtered)
-
-  visibleNodes.forEach(node => {
+  function renderNode(node, depth) {
     const nodeEl = document.createElement('div')
     nodeEl.className = 'tree-node'
     if (node.level > 0 && node.level <= 5) {
@@ -470,24 +451,29 @@ function renderTreeDropdown() {
       nodeEl.classList.add('selected')
     }
 
-    // 展开/折叠图标（有子节点时显示）
+    // 检查是否有子节点
     const hasChildren = treeNodes.some(n => n.parentId === node.id)
+
+    // 展开/折叠图标
     const expandIconEl = document.createElement('span')
     expandIconEl.className = 'tree-node-indent'
     expandIconEl.style.cursor = hasChildren ? 'pointer' : 'default'
-    expandIconEl.textContent = hasChildren ? (expandedTreeKeys.has(node.id) ? '▼' : '▶') : (node.level > 0 ? '└' : '')
 
     if (hasChildren) {
+      expandIconEl.textContent = expandedSet.has(node.id) ? '▼' : '▶'
       expandIconEl.addEventListener('click', (e) => {
         e.stopPropagation()
-        if (expandedTreeKeys.has(node.id)) {
-          expandedTreeKeys.delete(node.id)
+        if (expandedSet.has(node.id)) {
+          expandedSet.delete(node.id)
         } else {
-          expandedTreeKeys.add(node.id)
+          expandedSet.add(node.id)
         }
         renderTreeDropdown()
       })
+    } else {
+      expandIconEl.textContent = depth > 0 ? '└' : ''
     }
+
     nodeEl.appendChild(expandIconEl)
 
     // 节点 key
@@ -502,5 +488,15 @@ function renderTreeDropdown() {
     })
 
     treeDropdownEl.appendChild(nodeEl)
-  })
+
+    // 渲染子节点
+    if (hasChildren && expandedSet.has(node.id)) {
+      const children = treeNodes.filter(n => n.parentId === node.id)
+      children.forEach(child => renderNode(child, depth + 1))
+    }
+  }
+
+  // 只渲染根节点，子节点递归渲染
+  const rootNodes = filtered.filter(n => n.level === 0)
+  rootNodes.forEach(node => renderNode(node, 0))
 }
