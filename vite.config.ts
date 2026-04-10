@@ -9,9 +9,7 @@ export default defineConfig({
     outDir: 'panel/dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        panel: resolve(__dirname, 'panel/index.html')
-      },
+      input: resolve(__dirname, 'panel/index.html'),
       output: {
         entryFileNames: '[name].js',
         chunkFileNames: '[name].js',
