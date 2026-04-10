@@ -518,8 +518,12 @@ function renderTreeDropdown() {
 
   if (filtered.length === 0) {
     treeDropdownEl.innerHTML = '<div class="tree-node" style="color: #999; justify-content: center;">暂无匹配节点</div>'
+    displayedNodes = []
     return
   }
+
+  // 保存显示的节点列表用于键盘导航
+  displayedNodes = []
 
   treeDropdownEl.innerHTML = ''
 
@@ -532,6 +536,9 @@ function renderTreeDropdown() {
     if (node.id === selectedNodeId) {
       nodeEl.classList.add('selected')
     }
+
+    // 保存到 displayedNodes 数组
+    displayedNodes.push(node)
 
     // 检查是否有子节点
     const hasChildren = treeNodes.some(n => n.parentId === node.id)
@@ -572,4 +579,9 @@ function renderTreeDropdown() {
   // 只渲染根节点，子节点递归渲染
   const rootNodes = filtered.filter(n => n.level === 0)
   rootNodes.forEach(node => renderNode(node, 0))
+
+  // 应用键盘高亮
+  if (keyboardIndex >= 0) {
+    highlightSelectedNode()
+  }
 }
