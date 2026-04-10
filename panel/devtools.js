@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.devtools.panels.create(
     'Console DevTools',
     '',
-    'panel/dist/index.native.html',
+    'panel/index.native.html',
     function(panel) {
       console.log('[DevTools] 面板已创建');
 
