@@ -1,0 +1,23 @@
+{
+  "name": "Console DevTools",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "description": "树形日志过滤和展示工具",
+  "devtools_page": "panel/devtools.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/message-listener.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "console-devtools",
+  "version": "1.0.0",
+  "description": "Chrome 扩展：增强浏览器控制台功能，提供更强大的调试和开发工具",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "chrome-extension",
+    "devtools",
+    "console",
+    "debugging"
+  ],
+  "author": "zc",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.258",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6"
+  },
+  "volta": {
+    "node": "24.6.0",
+    "yarn": "1.22.22"
+  }
+}

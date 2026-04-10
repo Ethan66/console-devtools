@@ -4,7 +4,13 @@
       "Bash(npx skills:*)",
       "Bash(git config:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm --version)",
+      "Bash(npm cache:*)",
+      "Bash(npm run:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

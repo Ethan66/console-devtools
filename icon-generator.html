@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>图标生成器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Console DevTools 图标生成器</h1>
+  <p>点击按钮下载不同尺寸的图标</p>
+
+  <canvas id="canvas128" width="128" height="128"></canvas>
+  <br>
+  <button onclick="downloadIcon(128, 'icon128.png')">下载 128x128 图标</button>
+  <button onclick="downloadIcon(48, 'icon48.png')">下载 48x48 图标</button>
+  <button onclick="downloadIcon(16, 'icon16.png')">下载 16x16 图标</button>
+
+  <script>
+    function drawIcon(size) {
+      const canvas = document.getElementById('canvas128')
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+
+      // 背景
+      ctx.fillStyle = '#1976d2'
+      ctx.fillRect(0, 0, size, size)
+
+      // 圆角
+      const radius = size * 0.15
+      ctx.clearRect(0, 0, radius, radius)
+      ctx.clearRect(size - radius, 0, radius, radius)
+      ctx.clearRect(0, size - radius, radius, radius)
+      ctx.clearRect(size - radius, size - radius, radius, radius)
+
+      // 文字
+      ctx.fillStyle = 'white'
+      ctx.font = `bold ${size * 0.5}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('C', size / 2, size / 2)
+
+      return canvas
+    }
+
+    function downloadIcon(size, filename) {
+      const canvas = drawIcon(size)
+      canvas.toBlob(blob => {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(a.href)
+      })
+    }
+
+    // 初始化显示 128x128
+    drawIcon(128)
+  </script>
+</body>
+</html>
