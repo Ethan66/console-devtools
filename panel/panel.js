@@ -152,13 +152,15 @@ function containsSelectedNode(msg, nodeId) {
 // 重建树节点（扁平化用于下拉选项）
 function rebuildTreeNodes() {
   treeNodes = []
-  const keyCount = new Map() // 用于生成唯一 id
+  const nodeMap = new Map() // 用于去重，key: level + key + path
 
   messages.forEach((msg, msgIndex) => {
     Object.keys(msg.zfn || {}).forEach(key => {
       const childMsg = msg.zfn[key]
       const id = `msg-${msgIndex}-key-${key}`
+      const uniqueKey = `0-${key}-${childMsg.path || ''}`
 
+      // 根节点不合并，每条消息独立显示
       treeNodes.push({
         id,
         key,
@@ -169,31 +171,43 @@ function rebuildTreeNodes() {
         expanded: true
       })
 
-      // 递归处理子节点
-      buildChildNodes(childMsg, id, 1, keyCount)
+      // 递归处理子节点（去重）
+      buildChildNodes(childMsg, id, 1, nodeMap)
     })
   })
 }
 
-function buildChildNodes(message, parentId, level, keyCount) {
+function buildChildNodes(message, parentId, level, nodeMap) {
   Object.keys(message.zfn || {}).forEach(key => {
     const childMsg = message.zfn[key]
-    const count = keyCount.get(key) || 0
-    keyCount.set(key, count + 1)
-    const id = `${parentId}-child-${key}-${count}`
+    const uniqueKey = `${level}-${key}-${childMsg.path || ''}`
 
-    treeNodes.push({
-      id,
-      key,
-      path: childMsg.path || '',
-      level,
-      parentId,
-      originalData: childMsg,
-      expanded: true
-    })
+    // 检查是否已存在
+    if (!nodeMap.has(uniqueKey)) {
+      const id = `level-${level}-key-${key}-${Date.now()}-${Math.random()}`
+      nodeMap.set(uniqueKey, id)
+
+      nodeMap.get(uniqueKey) // 确保设置成功
+
+      const newNode = {
+        id,
+        key,
+        path: childMsg.path || '',
+        level,
+        parentId,
+        originalData: childMsg,
+        expanded: true
+      }
+
+      treeNodes.push(newNode)
+      nodeMap.set(uniqueKey, newNode) // 存储节点引用
+    }
 
     // 递归处理子节点
-    buildChildNodes(childMsg, id, level + 1, keyCount)
+    const existingNode = nodeMap.get(uniqueKey)
+    if (existingNode) {
+      buildChildNodes(childMsg, existingNode.id, level + 1, nodeMap)
+    }
   })
 }
 
