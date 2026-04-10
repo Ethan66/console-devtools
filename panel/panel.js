@@ -438,9 +438,6 @@ function renderTreeDropdown() {
 
   treeDropdownEl.innerHTML = ''
 
-  // 跟踪每个节点的展开状态
-  const expandedSet = expandedTreeKeys
-
   function renderNode(node, depth) {
     const nodeEl = document.createElement('div')
     nodeEl.className = 'tree-node'
@@ -454,22 +451,13 @@ function renderTreeDropdown() {
     // 检查是否有子节点
     const hasChildren = treeNodes.some(n => n.parentId === node.id)
 
-    // 展开/折叠图标
+    // 展开/折叠图标（只显示展开状态，禁用折叠）
     const expandIconEl = document.createElement('span')
     expandIconEl.className = 'tree-node-indent'
-    expandIconEl.style.cursor = hasChildren ? 'pointer' : 'default'
+    expandIconEl.style.cursor = 'default'
 
     if (hasChildren) {
-      expandIconEl.textContent = expandedSet.has(node.id) ? '▼' : '▶'
-      expandIconEl.addEventListener('click', (e) => {
-        e.stopPropagation()
-        if (expandedSet.has(node.id)) {
-          expandedSet.delete(node.id)
-        } else {
-          expandedSet.add(node.id)
-        }
-        renderTreeDropdown()
-      })
+      expandIconEl.textContent = '▼'
     } else {
       expandIconEl.textContent = depth > 0 ? '└' : ''
     }
@@ -489,8 +477,8 @@ function renderTreeDropdown() {
 
     treeDropdownEl.appendChild(nodeEl)
 
-    // 渲染子节点
-    if (hasChildren && expandedSet.has(node.id)) {
+    // 渲染子节点（始终展开）
+    if (hasChildren) {
       const children = treeNodes.filter(n => n.parentId === node.id)
       children.forEach(child => renderNode(child, depth + 1))
     }
