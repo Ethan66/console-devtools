@@ -133,8 +133,20 @@ function handleFilter(e) {
 
 // 检查是否包含关键字
 function containsKeyword(msg, keyword) {
+  if (!keyword) return true
   const keys = Object.keys(msg.zfn || {})
   return keys.some(key => key.toLowerCase().includes(keyword))
+}
+
+// 检查消息是否包含选中的节点
+function containsSelectedNode(msg, nodeId) {
+  if (!nodeId) return true
+
+  const node = treeNodes.find(n => n.id === nodeId)
+  if (!node) return true
+
+  // 检查消息的 zfn 中是否有匹配的 key
+  return Object.keys(msg.zfn || {}).some(key => key === node.key)
 }
 
 // 重建树节点（扁平化用于下拉选项）
