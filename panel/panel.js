@@ -105,6 +105,8 @@ function handleClear() {
   treeNodes = []
   selectedNodeId = null
   filterKeyword = ''
+  keyboardIndex = -1
+  displayedNodes = []
   if (filterInputEl) {
     filterInputEl.value = ''
   }
