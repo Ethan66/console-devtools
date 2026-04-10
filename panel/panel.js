@@ -152,17 +152,16 @@ function containsSelectedNode(msg, nodeId) {
 // 重建树节点（扁平化用于下拉选项）
 function rebuildTreeNodes() {
   treeNodes = []
-  const nodeMap = new Map() // 用于去重，key: level + key + path
+  const nodeMap = new Map() // 用于去重，key: level-key-path
 
   messages.forEach((msg, msgIndex) => {
     Object.keys(msg.zfn || {}).forEach(key => {
       const childMsg = msg.zfn[key]
-      const id = `msg-${msgIndex}-key-${key}`
-      const uniqueKey = `0-${key}-${childMsg.path || ''}`
+      const rootId = `root-${msgIndex}-${key}`
 
       // 根节点不合并，每条消息独立显示
       treeNodes.push({
-        id,
+        id: rootId,
         key,
         path: childMsg.path || '',
         level: 0,
@@ -172,7 +171,7 @@ function rebuildTreeNodes() {
       })
 
       // 递归处理子节点（去重）
-      buildChildNodes(childMsg, id, 1, nodeMap)
+      buildChildNodes(childMsg, rootId, 1, nodeMap)
     })
   })
 }
@@ -182,15 +181,13 @@ function buildChildNodes(message, parentId, level, nodeMap) {
     const childMsg = message.zfn[key]
     const uniqueKey = `${level}-${key}-${childMsg.path || ''}`
 
-    // 检查是否已存在
-    if (!nodeMap.has(uniqueKey)) {
-      const id = `level-${level}-key-${key}-${Date.now()}-${Math.random()}`
-      nodeMap.set(uniqueKey, id)
+    // 检查是否已存在该节点
+    let existingNode = treeNodes.find(n => n.id === nodeMap.get(uniqueKey))
 
-      nodeMap.get(uniqueKey) // 确保设置成功
-
+    if (!existingNode) {
+      // 创建新节点
       const newNode = {
-        id,
+        id: `node-${level}-${key}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         key,
         path: childMsg.path || '',
         level,
@@ -200,14 +197,12 @@ function buildChildNodes(message, parentId, level, nodeMap) {
       }
 
       treeNodes.push(newNode)
-      nodeMap.set(uniqueKey, newNode) // 存储节点引用
+      nodeMap.set(uniqueKey, newNode.id)
+      existingNode = newNode
     }
 
     // 递归处理子节点
-    const existingNode = nodeMap.get(uniqueKey)
-    if (existingNode) {
-      buildChildNodes(childMsg, existingNode.id, level + 1, nodeMap)
-    }
+    buildChildNodes(childMsg, existingNode.id, level + 1, nodeMap)
   })
 }
 
