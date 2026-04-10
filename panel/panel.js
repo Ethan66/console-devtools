@@ -228,9 +228,17 @@ function render() {
     return
   }
 
-  const filtered = filterKeyword
-    ? messages.filter(msg => containsKeyword(msg, filterKeyword))
-    : messages
+  let filtered = messages
+
+  // 先根据选中的节点过滤
+  if (selectedNodeId) {
+    filtered = filtered.filter(msg => containsSelectedNode(msg, selectedNodeId))
+  }
+
+  // 再根据关键字过滤
+  if (filterKeyword && !selectedNodeId) {
+    filtered = filtered.filter(msg => containsKeyword(msg, filterKeyword))
+  }
 
   if (filtered.length === 0) {
     logContentEl.innerHTML = '<div class="empty-state">' + (messages.length === 0 ? '暂无日志数据' : '未找到匹配的节点') + '</div>'
