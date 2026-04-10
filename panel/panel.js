@@ -197,28 +197,46 @@ function buildChildNodes(message, parentId, level, keyCount) {
   })
 }
 
-// 筛选树节点
+// 筛选树节点（保持树形结构）
 function filterTreeNodes(keyword) {
   if (!keyword) {
-    return treeNodes.filter(node => node.level === 0)
+    // 返回所有节点，保持层级关系
+    return getTreeDisplayNodes(treeNodes)
   }
 
   const lowerKeyword = keyword.toLowerCase()
-  const matchedNodes = treeNodes.filter(node =>
-    node.key.toLowerCase().includes(lowerKeyword)
-  )
 
-  // 返回匹配的节点以及它们的父节点（用于显示层级）
-  const resultNodes = new Set()
-  matchedNodes.forEach(node => {
-    let currentNode = node
-    while (currentNode) {
-      resultNodes.add(currentNode)
-      currentNode = treeNodes.find(n => n.id === currentNode.parentId)
+  // 找到所有匹配的节点
+  const matchedIds = new Set()
+  treeNodes.forEach(node => {
+    if (node.key.toLowerCase().includes(lowerKeyword)) {
+      // 添加匹配节点及其所有祖先节点
+      let currentNode = node
+      while (currentNode) {
+        matchedIds.add(currentNode.id)
+        const parent = treeNodes.find(n => n.id === currentNode.parentId)
+        currentNode = parent
+      }
     }
   })
 
-  return Array.from(resultNodes).sort((a, b) => a.level - b.level)
+  // 返回需要显示的节点（保持层级）
+  return getTreeDisplayNodes(treeNodes.filter(n => matchedIds.has(n.id)))
+}
+
+// 获取树形显示的节点列表（根节点在前，子节点按顺序排列）
+function getTreeDisplayNodes(nodes) {
+  const result = []
+  const rootNodes = nodes.filter(n => !n.parentId || n.level === 0)
+
+  function addNodeWithChildren(node) {
+    result.push(node)
+    const children = nodes.filter(n => n.parentId === node.id)
+    children.forEach(child => addNodeWithChildren(child))
+  }
+
+  rootNodes.forEach(node => addNodeWithChildren(node))
+  return result
 }
 
 // 渲染日志树
