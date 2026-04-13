@@ -8,6 +8,15 @@
     "service_worker": "background.js"
   },
   "permissions": ["activeTab"],
+  "externally_connectable": {
+    "matches": ["<all_urls>"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content/inject-extension-id.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

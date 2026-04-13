@@ -4,7 +4,17 @@
 
   console.log('[Console DevTools] Content script injected')
 
-  // 监听页面的 postMessage
+  // 获取扩展 ID
+  const extensionId = chrome.runtime.id
+
+  // 注入外部脚本到页面上下文
+  const script = document.createElement('script')
+  script.src = chrome.runtime.getURL('content/inject-extension-id.js')
+  script.setAttribute('data-extension-id', extensionId)
+  document.documentElement.appendChild(script)
+  script.remove()
+
+  // 监听页面的 postMessage（兼容旧方式）
   window.addEventListener('message', function(event) {
     // 只处理来自同源的消息
     if (event.source !== window) return

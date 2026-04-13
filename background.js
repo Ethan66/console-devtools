@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true // 保持消息通道开启
 })
 
-// 监听 panel 连接
+// 监听 panel 连接（内部连接）
 chrome.runtime.onConnect.addListener((port) => {
   console.log('[Background] onConnect:', port.name)
   if (port.name === 'console-devtools-panel') {
@@ -54,6 +54,40 @@ chrome.runtime.onConnect.addListener((port) => {
     port.onDisconnect.addListener(() => {
       console.log('[Console DevTools] Panel disconnected')
       panelPort = null
+    })
+  }
+})
+
+// 监听来自外部页面的连接（externally_connectable 配置后生效）
+chrome.runtime.onConnectExternal.addListener((port) => {
+  console.log('[Background] onConnectExternal:', port.name, 'from tab:', port.sender?.tab?.id)
+
+  if (port.name === 'console-devtools') {
+    console.log('[Console DevTools] Page connected, panelPort status:', panelPort ? 'connected' : 'not connected')
+
+    // 监听页面消息并转发给 panel
+    port.onMessage.addListener((message) => {
+      console.log('[Background] Message from page:', JSON.stringify(message).slice(0, 100))
+      if (panelPort) {
+        console.log('[Background] Forwarding to panel')
+        try {
+          panelPort.postMessage(message)
+          console.log('[Background] Forwarded successfully')
+        } catch (e) {
+          console.error('[Background] Forward failed:', e)
+        }
+      } else {
+        // 缓存消息
+        if (messageBuffer.length >= MAX_BUFFER_SIZE) {
+          messageBuffer.shift()
+        }
+        messageBuffer.push(message)
+        console.log('[Background] Message buffered (panel not connected), total:', messageBuffer.length)
+      }
+    })
+
+    port.onDisconnect.addListener(() => {
+      console.log('[Console DevTools] Page disconnected')
     })
   }
 })

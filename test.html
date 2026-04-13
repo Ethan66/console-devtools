@@ -92,15 +92,79 @@
       }
     }
 
+    // 保持连接端口
+    let port = null
+    let isExtensionReady = false
+
+    // 获取扩展 ID（由 content script 注入）
+    function getExtensionId() {
+      return window.__CONSOLE_DEVTOOLS_EXTENSION_ID__
+    }
+
+    // 初始化连接
+    function initPort() {
+      const extId = getExtensionId()
+      if (!extId) {
+        console.log('[test.html] 扩展 ID 未注入，等待 content script...')
+        return false
+      }
+      try {
+        port = chrome.runtime.connect(extId, { name: 'console-devtools' })
+        console.log('[test.html] 连接成功，extensionId:', extId)
+        port.onDisconnect.addListener(() => {
+          console.log('[test.html] 连接已断开')
+          port = null
+          isExtensionReady = false
+        })
+        isExtensionReady = true
+        return true
+      } catch (e) {
+        console.log('[test.html] 连接失败:', e.message)
+        return false
+      }
+    }
+
+    // 发送消息
+    function sendToExtension(data) {
+      if (!isExtensionReady) {
+        if (!initPort()) {
+          console.log('[test.html] 跳过发送')
+          return
+        }
+      }
+      try {
+        port.postMessage(data)
+      } catch (e) {
+        console.log('[test.html] 发送失败，尝试重新连接:', e.message)
+        isExtensionReady = false
+        port = null
+        if (initPort()) {
+          port.postMessage(data)
+        }
+      }
+    }
+
+    // 监听扩展就绪事件 - 设置扩展 ID 并初始化连接
+    window.addEventListener('console-devtools-ready', (e) => {
+      const extId = e.detail?.extensionId || getExtensionId()
+      console.log('[test.html] 扩展已就绪，ID:', extId)
+      if (extId) {
+        window.__CONSOLE_DEVTOOLS_EXTENSION_ID__ = extId
+        isExtensionReady = true
+        // 延迟初始化，确保扩展 ID 已设置
+        setTimeout(() => initPort(), 0)
+      }
+    })
+
     document.getElementById('sendTestMessage').addEventListener('click', () => {
-      window.postMessage(testMessage, '*')
+      sendToExtension(testMessage)
       console.log('✓ 测试消息已发送')
     })
 
     document.getElementById('sendMultiple').addEventListener('click', () => {
       for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-          window.postMessage(testMessage, '*')
+          sendToExtension(testMessage)
         }, i * 100)
       }
       console.log('✓ 多条消息已发送')
@@ -108,7 +172,7 @@
 
     // 自动发送一条消息用于演示
     setTimeout(() => {
-      window.postMessage(testMessage, '*')
+      sendToExtension(testMessage)
       console.log('✓ 自动发送的测试消息')
     }, 1000)
   </script>

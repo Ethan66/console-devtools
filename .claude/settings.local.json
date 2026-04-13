@@ -12,7 +12,8 @@
       "Bash(npm run:*)",
       "Bash(git reset:*)",
       "Bash(yarn build:*)",
-      "Bash(Move-Item:*)"
+      "Bash(Move-Item:*)",
+      "Bash(start chrome://extensions)"
     ]
   }
 }
