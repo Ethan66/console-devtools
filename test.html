@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -56,105 +56,77 @@
 
   <script>
     const testMessage = {
-      params: {
-        val: true
-      },
-      path: "src/pages/borrow/components/first-enjoy-bind-card.vue:100",
-      zfn: {
-        handleGetPage: {
-          params: {},
-          path: "src/pages/borrow/mixins/first-enjoy.js:235",
-          zfn: {
-            "[computed] reqPageType": {
-              params: {},
-              path: "src/pages/borrow/mixins/first-enjoy.js:52",
-              zfn: {}
+    "onTest": {
+        "params": { a: { key: 1, key2: { c: 2}} },
+        "path": "src/pages/demo/sdkDemo.vue:150",
+        "zfn": {
+            "[computed] app": {
+                "params": {},
+                "path": "src/pages/demo/sdkDemo.vue:138",
+                "zfn": {}
             }
+        }
+    }
+}
+
+    function useConsoleDevtools() {
+      const EXTENSION_ID_KEY = '__CONSOLE_DEVTOOLS_EXTENSION_ID__'
+      const state = {
+        port: null,
+        extensionId: window[EXTENSION_ID_KEY] || null,
+      }
+
+      function logError(type, message) {
+        console.log(`%c console-devtools-${type}：`, 'background:#f56c6c;color:#fff;', message || 'error')
+      }
+
+      function resetConnection(type, message) {
+        state.port = null
+        logError(type, message)
+      }
+
+      function connect() {
+        if (state.port) return true
+        if (!state.extensionId) {
+          logError('ready', '扩展还没有加载')
+          return false
+        }
+        try {
+          const nextPort = chrome.runtime.connect(state.extensionId, { name: 'console-devtools' })
+          nextPort.onDisconnect.addListener(() => resetConnection('disconnected'))
+          state.port = nextPort
+          console.log('%c console-devtools-connected：', 'background:#67c23a;color:#fff;', 'success')
+          return true
+        } catch (e) {
+          resetConnection('connect failed', e.message)
+          return false
+        }
+      }
+
+      function send(data) {
+        if (!connect()) return
+        try {
+          state.port.postMessage(data)
+        } catch (e) {
+          resetConnection('send-failed', e.message)
+          if (connect()) {
+            state.port.postMessage(data)
           }
-        },
-        "[watch] showDialog": {
-          params: {
-            val: true
-          },
-          path: "src/pages/borrow/components/first-enjoy-bind-card.vue:115",
-          zfn: {}
-        },
-        "[computed] mainDianPageCode": {
-          params: {},
-          path: "src/pages/borrow/mixins/first-enjoy.js:67",
-          zfn: {}
-        },
-        setCardName: {
-          params: {},
-          path: "src/pages/borrow/mixins/first-enjoy.js:309",
-          zfn: {}
         }
       }
+
+      window.addEventListener('console-devtools-ready', (e) => {
+        const extId = e.detail?.extensionId
+        console.log('%c console-devtools-ready: ', 'background:#67c23a;color:#fff;', 'success')
+        if (!extId) return
+        state.extensionId = extId
+        window[EXTENSION_ID_KEY] = extId
+        connect()
+      })
+      return { send }
     }
 
-    // 保持连接端口
-    let port = null
-    let isExtensionReady = false
-
-    // 获取扩展 ID（由 content script 注入）
-    function getExtensionId() {
-      return window.__CONSOLE_DEVTOOLS_EXTENSION_ID__
-    }
-
-    // 初始化连接
-    function initPort() {
-      const extId = getExtensionId()
-      if (!extId) {
-        console.log('[test.html] 扩展 ID 未注入，等待 content script...')
-        return false
-      }
-      try {
-        port = chrome.runtime.connect(extId, { name: 'console-devtools' })
-        console.log('[test.html] 连接成功，extensionId:', extId)
-        port.onDisconnect.addListener(() => {
-          console.log('[test.html] 连接已断开')
-          port = null
-          isExtensionReady = false
-        })
-        isExtensionReady = true
-        return true
-      } catch (e) {
-        console.log('[test.html] 连接失败:', e.message)
-        return false
-      }
-    }
-
-    // 发送消息
-    function sendToExtension(data) {
-      if (!isExtensionReady) {
-        if (!initPort()) {
-          console.log('[test.html] 跳过发送')
-          return
-        }
-      }
-      try {
-        port.postMessage(data)
-      } catch (e) {
-        console.log('[test.html] 发送失败，尝试重新连接:', e.message)
-        isExtensionReady = false
-        port = null
-        if (initPort()) {
-          port.postMessage(data)
-        }
-      }
-    }
-
-    // 监听扩展就绪事件 - 设置扩展 ID 并初始化连接
-    window.addEventListener('console-devtools-ready', (e) => {
-      const extId = e.detail?.extensionId || getExtensionId()
-      console.log('[test.html] 扩展已就绪，ID:', extId)
-      if (extId) {
-        window.__CONSOLE_DEVTOOLS_EXTENSION_ID__ = extId
-        isExtensionReady = true
-        // 延迟初始化，确保扩展 ID 已设置
-        setTimeout(() => initPort(), 0)
-      }
-    })
+    const { send: sendToExtension } = useConsoleDevtools()
 
     document.getElementById('sendTestMessage').addEventListener('click', () => {
       sendToExtension(testMessage)
