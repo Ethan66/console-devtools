@@ -13,7 +13,10 @@
       "Bash(git reset:*)",
       "Bash(yarn build:*)",
       "Bash(Move-Item:*)",
-      "Bash(start chrome://extensions)"
+      "Bash(start chrome://extensions)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(npm info *)"
     ]
   }
 }
