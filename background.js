@@ -8,6 +8,10 @@ const MAX_BUFFER_SIZE = 100
 // 当前的 panel 连接
 let panelPort = null
 
+function isArrayPayload(payload) {
+  return Array.isArray(payload)
+}
+
 // 监听 content script 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('[Background] Received message:', request.type, request.data ? 'with data' : 'no data', 'from:', sender.tab?.id || 'devtools')
@@ -16,6 +20,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ status: 'ok' })
   } else if (request.type === 'CONSOLE_DEVTOOLS_MESSAGE') {
     console.log('[Background] Message received, panelPort:', panelPort ? 'connected' : 'not connected', 'buffer size:', messageBuffer.length)
+    // 忽略数组类型的 payload
+    if (isArrayPayload(request.data)) {
+      console.warn('[Background] Ignore array payload from runtime message')
+      sendResponse({ status: 'ignored-array' })
+      return true
+    }
+
     // 如果有 panel 连接，直接转发
     if (panelPort) {
       console.log('[Background] Forwarding to panel')
@@ -68,6 +79,12 @@ chrome.runtime.onConnectExternal.addListener((port) => {
     // 监听页面消息并转发给 panel
     port.onMessage.addListener((message) => {
       console.log('[Background] Message from page:', JSON.stringify(message).slice(0, 100))
+      // 忽略数组类型的 payload
+      if (isArrayPayload(message)) {
+        console.warn('[Background] Ignore array payload from external page')
+        return
+      }
+
       if (panelPort) {
         console.log('[Background] Forwarding to panel')
         try {
