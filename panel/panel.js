@@ -67,31 +67,19 @@ function containsKeyword(message, keyword) {
   return checkNode(message)
 }
 
-// 判断消息是否包含选中的节点
+// 判断消息是否包含选中的节点或其祖先
 function containsSelectedNode(message, selectedNode) {
   if (!selectedNode) return true
 
-  function checkNode(node, currentLevel, currentMsgIndex) {
-    const children = getChildEntries(node)
-
-    for (const [key, childMsg] of children) {
-      // 检查是否匹配选中节点（key + path + msgIndex）
-      if (
-        key === selectedNode.key &&
-        (childMsg.path || '') === (selectedNode.path || '') &&
-        currentMsgIndex === selectedNode.msgIndex
-      ) {
-        return true
-      }
-      // 递归检查子节点
-      if (checkNode(childMsg, currentLevel + 1, currentMsgIndex)) {
-        return true
-      }
-    }
+  // 检查当前消息的 msgIndex 是否匹配
+  const msgIndex = messages.indexOf(message)
+  if (msgIndex !== selectedNode.msgIndex) {
     return false
   }
 
-  return checkNode(message, 0, messages.indexOf(message))
+  // 选中节点就是当前消息的顶级节点或其子节点，都应该显示
+  // 因为 selectedNode.msgIndex 已经确定是从这条消息来的
+  return true
 }
 
 function rebuildTreeNodes() {
