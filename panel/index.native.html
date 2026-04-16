@@ -380,24 +380,26 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 50px;
       background: linear-gradient(to bottom, transparent, #fff);
       pointer-events: none;
     }
     .expand-content-btn {
-      margin-top: 6px;
-      padding: 4px 12px;
+      margin-top: 4px;
+      padding: 2px 8px;
       background: #f0f2f5;
-      color: #595959;
+      color: #8c8c8c;
       border: 1px solid #d9d9d9;
       border-radius: 4px;
-      font-size: 11px;
+      font-size: 10px;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-weight: 500;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      line-height: 1;
     }
     .expand-content-btn:hover {
       background: #667eea;
@@ -405,7 +407,7 @@
       border-color: #667eea;
     }
     .expand-content-btn.expanded {
-      background: #fff;
+      background: #f0f2f5;
     }
     .log-json::-webkit-scrollbar {
       height: 4px;
