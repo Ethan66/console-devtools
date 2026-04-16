@@ -296,21 +296,24 @@ function handleClear() {
   renderTreeDropdown()
 }
 
-function handleExport() {
+function handleCopyJson() {
   if (messages.length === 0) {
-    alert('暂无数据可导出')
+    alert('暂无数据可复制')
     return
   }
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-  const filename = `console-devtools-${timestamp}.json`
   const data = JSON.stringify(messages, null, 2)
-  const blob = new Blob([data], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
+  navigator.clipboard.writeText(data).then(() => {
+    const originalText = exportBtnEl.textContent
+    exportBtnEl.textContent = '已复制!'
+    exportBtnEl.disabled = true
+    setTimeout(() => {
+      exportBtnEl.textContent = originalText
+      exportBtnEl.disabled = false
+    }, 1500)
+  }).catch((err) => {
+    console.error('[Panel] 复制失败:', err)
+    alert('复制失败，请重试')
+  })
 }
 
 function showDropdown() {
