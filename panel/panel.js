@@ -278,7 +278,16 @@ function render() {
   if (!logContentEl) return
 
   let filtered = messages
-  if (filterKeyword) {
+
+  // 优先使用选中节点筛选，其次使用关键字筛选
+  if (selectedNodeId) {
+    const selectedNode = treeNodes.find((n) => n.id === selectedNodeId)
+    if (selectedNode) {
+      filtered = filtered.filter((msg, msgIndex) =>
+        containsSelectedNode(msg, selectedNode) && msgIndex === selectedNode.msgIndex
+      )
+    }
+  } else if (filterKeyword) {
     filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
   }
 
