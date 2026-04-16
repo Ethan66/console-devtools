@@ -189,7 +189,7 @@
     .log-container {
       flex: 1;
       overflow: auto;
-      padding: 16px 20px;
+      padding: 6px;
     }
     .log-container::-webkit-scrollbar {
       width: 8px;
@@ -216,7 +216,7 @@
     }
     /* ========== Log Item (Card Style) ========== */
     .log-item {
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       background: #fff;
       border-radius: 10px;
       overflow: hidden;
@@ -244,9 +244,7 @@
     .log-item-header {
       display: flex;
       align-items: center;
-      padding: 10px 14px;
-      cursor: pointer;
-      user-select: none;
+      padding: 3px 6px;
       background: linear-gradient(135deg, #fafafa 0%, #fff 100%);
       border-bottom: 1px solid #f5f5f5;
       transition: background 0.15s ease;
@@ -269,14 +267,52 @@
       font-size: 13px;
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     }
+    .log-path-separator {
+      color: #bfbfbf;
+      margin: 0 4px;
+      font-size: 12px;
+    }
+    .log-path-value {
+      color: #8c8c8c;
+      font-size: 12px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      max-width: 400px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy-btn-inline {
+      padding: 2px 8px;
+      background: #f0f2f5;
+      color: #595959;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    .copy-btn-inline:hover {
+      background: #667eea;
+      color: #fff;
+      border-color: #667eea;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
+    .log-item-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     .log-item-content {
-      padding: 12px 14px;
+      padding: 0 6px;
       background: #fafafa;
     }
     /* ========== Log Row ========== */
     .log-row {
       display: flex;
-      padding: 8px 0;
+      padding-bottom: 4px;
       align-items: flex-start;
       gap: 6px;
       line-height: 1.5;
@@ -322,7 +358,7 @@
     /* ========== JSON Code Block ========== */
     .log-json {
       margin: 6px 0 0 0;
-      padding: 10px 12px;
+      padding: 4px 6px;
       background: #fff;
       border: 1px solid #e8e8e8;
       border-radius: 6px;
