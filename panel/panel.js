@@ -4,7 +4,6 @@ console.log('[Panel] panel.js loaded')
 let messages = []
 let filterKeyword = ''
 let selectedNodeId = null
-let selectedNodeKey = null // 选中节点的 key，用于高亮但不用于过滤
 let treeNodes = []
 let keyboardIndex = -1
 let displayedNodes = []
