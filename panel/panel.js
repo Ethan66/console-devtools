@@ -262,7 +262,8 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
           // 创建展开按钮
           const expandBtn = document.createElement('button')
           expandBtn.className = 'expand-content-btn'
-          expandBtn.innerHTML = '▼ 展开'
+          expandBtn.innerHTML = '▼'
+          expandBtn.title = '展开'
           expandBtn.addEventListener('click', (e) => {
             e.stopPropagation()
             const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
@@ -270,13 +271,15 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
               paramsPreEl.classList.remove('log-json-collapsed')
               paramsPreEl.style.maxHeight = 'none'
               paramsPreEl.style.overflow = 'auto'
-              expandBtn.innerHTML = '▲ 收起'
+              expandBtn.innerHTML = '▲'
+              expandBtn.title = '收起'
               expandBtn.classList.add('expanded')
             } else {
               paramsPreEl.classList.add('log-json-collapsed')
               paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
               paramsPreEl.style.overflow = 'hidden'
-              expandBtn.innerHTML = '▼ 展开'
+              expandBtn.innerHTML = '▼'
+              expandBtn.title = '展开'
               expandBtn.classList.remove('expanded')
               paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }
