@@ -195,11 +195,19 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
     const pathValue = childMsg.path || ''
     const MAX_PATH_LENGTH = 30
 
-    headerEl.appendChild(iconEl)
-    headerEl.appendChild(keyEl)
+    // 左侧：折叠图标 + key
+    const leftContainer = document.createElement('div')
+    leftContainer.className = 'log-header-left'
+    leftContainer.appendChild(iconEl)
+    leftContainer.appendChild(keyEl)
 
-    // 如果有 path，显示在 key 右边
+    headerEl.appendChild(leftContainer)
+
+    // 如果有 path，显示在右侧
     if (pathValue) {
+      const rightContainer = document.createElement('div')
+      rightContainer.className = 'log-header-right'
+
       const pathSeparatorEl = document.createElement('span')
       pathSeparatorEl.className = 'log-path-separator'
       pathSeparatorEl.textContent = ' › '
@@ -228,9 +236,11 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
         })
       })
 
-      headerEl.appendChild(pathSeparatorEl)
-      headerEl.appendChild(pathEl)
-      headerEl.appendChild(copyBtn)
+      rightContainer.appendChild(pathSeparatorEl)
+      rightContainer.appendChild(pathEl)
+      rightContainer.appendChild(copyBtn)
+
+      headerEl.appendChild(rightContainer)
     }
 
     const contentEl = document.createElement('div')
