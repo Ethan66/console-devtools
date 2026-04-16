@@ -154,7 +154,7 @@ function hasMatchingChild(message, keyword) {
   return children.some(([, child]) => hasMatchingChild(child, keyword))
 }
 
-function createLogNode(message, level, keyword = '', selectedKey = null) {
+function createLogNode(message, level, keyword = '', selectedKey = null, isParentSelected = false) {
   const container = document.createElement('div')
   container.className = 'log-node'
 
@@ -162,20 +162,9 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
     // 检查是否是选中的节点
     const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
 
-    // 如果有选中的节点，只显示选中节点及其子节点
-    if (selectedKey) {
-      if (isSelected) {
-        // 是选中节点，显示并递归显示所有子节点
-      } else {
-        // 不是选中节点，跳过
-        return
-      }
-    } else if (keyword) {
-      // 没有选中节点但有搜索词，使用搜索过滤
-      const selfMatch = key.toLowerCase().includes(keyword)
-      if (!selfMatch && !hasMatchingChild(childMsg, keyword)) {
-        return
-      }
+    // 如果有选中的节点，只显示选中节点及其后代节点
+    if (selectedKey && !isSelected && !isParentSelected) {
+      return
     }
 
     const itemEl = document.createElement('div')
@@ -236,7 +225,8 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
     }
 
     if (getChildEntries(childMsg).length > 0) {
-      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedKey))
+      // 递归时传递 isParentSelected：如果当前节点是选中的节点或父节点已选中，则子节点也显示
+      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedKey, isSelected || isParentSelected))
     }
 
     let expanded = true
