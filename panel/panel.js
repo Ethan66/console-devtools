@@ -70,9 +70,10 @@ function containsKeyword(message, keyword) {
 function rebuildTreeNodes() {
   const nodeMap = new Map()
 
-  function buildChildren(nodeData, parentId, level, parentStableKey) {
+  function buildChildren(nodeData, parentId, level, parentStableKey, msgIndex) {
     getChildEntries(nodeData).forEach(([key, childMsg]) => {
-      const stableKey = `${parentStableKey}|${level}|${key}|${childMsg.path || ''}`
+      // 加入 msgIndex 让相同内容的节点能够区分
+      const stableKey = `${msgIndex}|${parentStableKey}|${level}|${key}|${childMsg.path || ''}`
       const nodeId = `node-${encodeURIComponent(stableKey)}`
 
       if (!nodeMap.has(stableKey)) {
@@ -84,7 +85,8 @@ function rebuildTreeNodes() {
           parentId,
           originalData: childMsg,
           expanded: true,
-          childrenIds: new Set()
+          childrenIds: new Set(),
+          msgIndex // 记录来自第几条消息
         })
       }
 
@@ -97,12 +99,13 @@ function rebuildTreeNodes() {
         }
       }
 
-      buildChildren(childMsg, nodeId, level + 1, stableKey)
+      buildChildren(childMsg, nodeId, level + 1, parentStableKey, msgIndex)
     })
   }
 
-  messages.forEach((msg) => {
-    buildChildren(msg, null, 0, 'root')
+  // 为每条消息添加唯一索引
+  messages.forEach((msg, msgIndex) => {
+    buildChildren(msg, null, 0, 'root', msgIndex)
   })
 
   treeNodes = Array.from(nodeMap.values())
