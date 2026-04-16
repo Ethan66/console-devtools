@@ -281,7 +281,6 @@ function handleClear() {
   messages = []
   treeNodes = []
   selectedNodeId = null
-  selectedNodeKey = null
   filterKeyword = ''
   keyboardIndex = -1
   displayedNodes = []
