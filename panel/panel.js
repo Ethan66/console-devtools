@@ -191,32 +191,43 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
     keyEl.className = 'log-key'
     keyEl.textContent = key
 
+    // path 值
+    const pathValue = childMsg.path || ''
+
     headerEl.appendChild(iconEl)
     headerEl.appendChild(keyEl)
+
+    // 如果有 path，显示在 key 右边
+    if (pathValue) {
+      const pathSeparatorEl = document.createElement('span')
+      pathSeparatorEl.className = 'log-path-separator'
+      pathSeparatorEl.textContent = ' › '
+
+      const pathEl = document.createElement('span')
+      pathEl.className = 'log-path-value'
+      pathEl.textContent = pathValue
+
+      const copyBtn = document.createElement('button')
+      copyBtn.className = 'copy-btn-inline'
+      copyBtn.textContent = '复制'
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(pathValue).then(() => {
+          copyBtn.textContent = '已复制'
+          setTimeout(() => {
+            copyBtn.textContent = '复制'
+          }, 1000)
+        })
+      })
+
+      headerEl.appendChild(pathSeparatorEl)
+      headerEl.appendChild(pathEl)
+      headerEl.appendChild(copyBtn)
+    }
 
     const contentEl = document.createElement('div')
     contentEl.className = 'log-item-content'
     contentEl.style.display = 'block'
-
-    const pathRowEl = document.createElement('div')
-    pathRowEl.className = 'log-row'
-    pathRowEl.innerHTML = `
-      <span class="log-label">path:</span>
-      <span class="log-value">${childMsg.path || ''}</span>
-      <button class="copy-btn">复制</button>
-    `
-
-    const copyBtn = pathRowEl.querySelector('.copy-btn')
-    copyBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      navigator.clipboard.writeText(childMsg.path || '').then(() => {
-        copyBtn.textContent = '已复制'
-        setTimeout(() => {
-          copyBtn.textContent = '复制'
-        }, 1000)
-      })
-    })
-    contentEl.appendChild(pathRowEl)
 
     if (isObject(childMsg.params) && Object.keys(childMsg.params).length > 0) {
       const paramsRowEl = document.createElement('div')
