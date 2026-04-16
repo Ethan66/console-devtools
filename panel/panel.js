@@ -481,28 +481,7 @@ function initPanel() {
   exportBtnEl = document.getElementById('exportBtn')
   treeDropdownEl = document.getElementById('treeDropdown')
 
-  try {
-    port = chrome.runtime.connect({ name: 'console-devtools-panel' })
-
-    port.onMessage.addListener((message) => {
-      if (message && message.type === 'BUFFERED_MESSAGES' && Array.isArray(message.data)) {
-        messages = messages.concat(message.data)
-      } else {
-        messages.push(message)
-      }
-      rebuildTreeNodes()
-      render()
-      renderTreeDropdown()
-    })
-
-    port.onDisconnect.addListener(() => {
-      port = null
-    })
-
-    port.postMessage({ type: 'PANEL_READY' })
-  } catch (err) {
-    console.error('[Panel] connect failed:', err)
-  }
+  connectToBackground()
 
   if (clearBtnEl) clearBtnEl.addEventListener('click', handleClear)
   if (exportBtnEl) exportBtnEl.addEventListener('click', handleCopyJson)
@@ -527,6 +506,53 @@ function initPanel() {
   })
 
   render()
+}
+
+// 连接到 background script（支持重连）
+function connectToBackground() {
+  if (port) {
+    try {
+      port.disconnect()
+    } catch (e) {}
+  }
+
+  try {
+    port = chrome.runtime.connect({ name: 'console-devtools-panel' })
+    console.log('[Panel] Connected to background')
+
+    port.onMessage.addListener((message) => {
+      if (message && message.type === 'BUFFERED_MESSAGES' && Array.isArray(message.data)) {
+        messages = messages.concat(message.data)
+      } else {
+        messages.push(message)
+      }
+      rebuildTreeNodes()
+      render()
+      renderTreeDropdown()
+    })
+
+    port.onDisconnect.addListener(() => {
+      console.log('[Panel] Disconnected from background')
+      port = null
+      // 1 秒后尝试重连
+      setTimeout(() => {
+        if (!port) {
+          console.log('[Panel] Attempting to reconnect...')
+          connectToBackground()
+        }
+      }, 1000)
+    })
+
+    port.postMessage({ type: 'PANEL_READY' })
+  } catch (err) {
+    console.error('[Panel] Connect failed:', err)
+    // 连接失败后 2 秒重试
+    setTimeout(() => {
+      if (!port) {
+        connectToBackground()
+      }
+    }, 2000)
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initPanel)
