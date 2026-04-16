@@ -271,9 +271,8 @@ function render() {
   if (selectedNodeId) {
     const selectedNode = treeNodes.find((n) => n.id === selectedNodeId)
     if (selectedNode) {
-      filtered = filtered.filter((msg, msgIndex) =>
-        containsSelectedNode(msg, selectedNode) && msgIndex === selectedNode.msgIndex
-      )
+      // 只显示选中节点所在的消息（通过 msgIndex 过滤）
+      filtered = filtered.filter((msg, msgIndex) => msgIndex === selectedNode.msgIndex)
     }
   } else if (filterKeyword) {
     filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
