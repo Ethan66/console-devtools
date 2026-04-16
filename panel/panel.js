@@ -494,7 +494,7 @@ function initPanel() {
   }
 
   if (clearBtnEl) clearBtnEl.addEventListener('click', handleClear)
-  if (exportBtnEl) exportBtnEl.addEventListener('click', handleExport)
+  if (exportBtnEl) exportBtnEl.addEventListener('click', handleCopyJson)
 
   if (filterInputEl) {
     filterInputEl.addEventListener('input', handleFilter)
