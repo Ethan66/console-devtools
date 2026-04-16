@@ -241,46 +241,50 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
 
       const paramsPreEl = document.createElement('pre')
       paramsPreEl.className = 'log-json'
-      paramsPreEl.textContent = JSON.stringify(childMsg.params, null, 2)
+      const paramsContent = JSON.stringify(childMsg.params, null, 2)
+      paramsPreEl.textContent = paramsContent
 
-      // 检查是否需要展开按钮
       const MAX_HEIGHT = 500
-      const isOverflow = paramsPreEl.scrollHeight > MAX_HEIGHT
 
       paramsRowEl.appendChild(paramsLabelEl)
       paramsRowEl.appendChild(paramsPreEl)
-
-      if (isOverflow) {
-        paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
-        paramsPreEl.style.overflow = 'hidden'
-        paramsPreEl.classList.add('log-json-collapsed')
-
-        // 创建展开按钮
-        const expandBtn = document.createElement('button')
-        expandBtn.className = 'expand-content-btn'
-        expandBtn.innerHTML = '▼ 展开'
-        expandBtn.addEventListener('click', (e) => {
-          e.stopPropagation()
-          const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
-          if (isCollapsed) {
-            paramsPreEl.classList.remove('log-json-collapsed')
-            paramsPreEl.style.maxHeight = 'none'
-            expandBtn.innerHTML = '▲ 收起'
-            expandBtn.classList.add('expanded')
-          } else {
-            paramsPreEl.classList.add('log-json-collapsed')
-            paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
-            expandBtn.innerHTML = '▼ 展开'
-            expandBtn.classList.remove('expanded')
-            // 滚动到可视区域
-            paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-        })
-
-        paramsRowEl.appendChild(expandBtn)
-      }
-
       contentEl.appendChild(paramsRowEl)
+
+      // 添加到 DOM 后检查是否溢出
+      requestAnimationFrame(() => {
+        const isOverflow = paramsPreEl.scrollHeight > MAX_HEIGHT
+
+        if (isOverflow) {
+          paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
+          paramsPreEl.style.overflow = 'hidden'
+          paramsPreEl.classList.add('log-json-collapsed')
+
+          // 创建展开按钮
+          const expandBtn = document.createElement('button')
+          expandBtn.className = 'expand-content-btn'
+          expandBtn.innerHTML = '▼ 展开'
+          expandBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
+            if (isCollapsed) {
+              paramsPreEl.classList.remove('log-json-collapsed')
+              paramsPreEl.style.maxHeight = 'none'
+              paramsPreEl.style.overflow = 'auto'
+              expandBtn.innerHTML = '▲ 收起'
+              expandBtn.classList.add('expanded')
+            } else {
+              paramsPreEl.classList.add('log-json-collapsed')
+              paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
+              paramsPreEl.style.overflow = 'hidden'
+              expandBtn.innerHTML = '▼ 展开'
+              expandBtn.classList.remove('expanded')
+              paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          })
+
+          paramsRowEl.appendChild(expandBtn)
+        }
+      })
     }
 
     if (getChildEntries(childMsg).length > 0) {
