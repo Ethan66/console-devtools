@@ -155,7 +155,7 @@ function hasMatchingChild(message, keyword) {
   return children.some(([, child]) => hasMatchingChild(child, keyword))
 }
 
-function createLogNode(message, level, keyword = '', selectedKey = null) {
+function createLogNode(message, level, keyword = '', selectedNode = null, currentMsgIndex = 0) {
   const container = document.createElement('div')
   container.className = 'log-node'
 
@@ -170,8 +170,12 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
     const itemEl = document.createElement('div')
     itemEl.className = 'log-item'
 
-    // 检查是否是选中的节点
-    const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
+    // 检查是否是选中的节点：匹配 msgIndex、key 和 path
+    const isSelected = selectedNode &&
+      currentMsgIndex === selectedNode.msgIndex &&
+      key === selectedNode.key &&
+      (childMsg.path || '') === (selectedNode.path || '')
+
     if (isSelected) {
       itemEl.classList.add('log-item-selected')
     }
@@ -226,7 +230,7 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
     }
 
     if (getChildEntries(childMsg).length > 0) {
-      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedKey))
+      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedNode, currentMsgIndex))
     }
 
     let expanded = true
