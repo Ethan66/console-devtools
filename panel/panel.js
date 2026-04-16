@@ -159,7 +159,19 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
   container.className = 'log-node'
 
   getChildEntries(message).forEach(([key, childMsg]) => {
-    if (keyword) {
+    // 检查是否是选中的节点
+    const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
+
+    // 如果有选中的节点，只显示选中节点及其子节点
+    if (selectedKey) {
+      if (isSelected) {
+        // 是选中节点，显示并递归显示所有子节点
+      } else {
+        // 不是选中节点，跳过
+        return
+      }
+    } else if (keyword) {
+      // 没有选中节点但有搜索词，使用搜索过滤
       const selfMatch = key.toLowerCase().includes(keyword)
       if (!selfMatch && !hasMatchingChild(childMsg, keyword)) {
         return
@@ -170,7 +182,6 @@ function createLogNode(message, level, keyword = '', selectedKey = null) {
     itemEl.className = 'log-item'
 
     // 检查是否是选中的节点
-    const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
     if (isSelected) {
       itemEl.classList.add('log-item-selected')
     }
