@@ -345,8 +345,8 @@ function handleNodeSelect(nodeId) {
   selectedNodeId = nodeId
   const node = treeNodes.find((n) => n.id === nodeId)
   if (node && filterInputEl) {
+    // 只更新输入框显示，不改变 filterKeyword，避免过滤掉子节点
     filterInputEl.value = node.key
-    filterKeyword = node.key.toLowerCase()
     keyboardIndex = -1
     render()
   }
