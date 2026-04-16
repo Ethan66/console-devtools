@@ -232,10 +232,54 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
     if (isObject(childMsg.params) && Object.keys(childMsg.params).length > 0) {
       const paramsRowEl = document.createElement('div')
       paramsRowEl.className = 'log-row'
-      paramsRowEl.innerHTML = `
-        <span class="log-label">params:</span>
-        <pre class="log-json">${JSON.stringify(childMsg.params, null, 2)}</pre>
-      `
+      paramsRowEl.style.flexDirection = 'column'
+      paramsRowEl.style.alignItems = 'flex-start'
+
+      const paramsLabelEl = document.createElement('span')
+      paramsLabelEl.className = 'log-label'
+      paramsLabelEl.textContent = 'params:'
+
+      const paramsPreEl = document.createElement('pre')
+      paramsPreEl.className = 'log-json'
+      paramsPreEl.textContent = JSON.stringify(childMsg.params, null, 2)
+
+      // 检查是否需要展开按钮
+      const MAX_HEIGHT = 500
+      const isOverflow = paramsPreEl.scrollHeight > MAX_HEIGHT
+
+      paramsRowEl.appendChild(paramsLabelEl)
+      paramsRowEl.appendChild(paramsPreEl)
+
+      if (isOverflow) {
+        paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
+        paramsPreEl.style.overflow = 'hidden'
+        paramsPreEl.classList.add('log-json-collapsed')
+
+        // 创建展开按钮
+        const expandBtn = document.createElement('button')
+        expandBtn.className = 'expand-content-btn'
+        expandBtn.innerHTML = '▼ 展开'
+        expandBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
+          if (isCollapsed) {
+            paramsPreEl.classList.remove('log-json-collapsed')
+            paramsPreEl.style.maxHeight = 'none'
+            expandBtn.innerHTML = '▲ 收起'
+            expandBtn.classList.add('expanded')
+          } else {
+            paramsPreEl.classList.add('log-json-collapsed')
+            paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
+            expandBtn.innerHTML = '▼ 展开'
+            expandBtn.classList.remove('expanded')
+            // 滚动到可视区域
+            paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        })
+
+        paramsRowEl.appendChild(expandBtn)
+      }
+
       contentEl.appendChild(paramsRowEl)
     }
 
