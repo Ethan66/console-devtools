@@ -350,8 +350,11 @@ function handleNodeSelect(nodeId) {
   if (node && filterInputEl) {
     // 只更新输入框显示，不改变 filterKeyword，避免过滤掉子节点
     filterInputEl.value = node.key
+    // 清空 filterKeyword，让下拉树显示全部节点
+    filterKeyword = ''
     keyboardIndex = -1
     render()
+    renderTreeDropdown()
   }
   hideDropdown()
 }
