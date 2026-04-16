@@ -67,6 +67,33 @@ function containsKeyword(message, keyword) {
   return checkNode(message)
 }
 
+// 判断消息是否包含选中的节点
+function containsSelectedNode(message, selectedNode) {
+  if (!selectedNode) return true
+
+  function checkNode(node, currentLevel, currentMsgIndex) {
+    const children = getChildEntries(node)
+
+    for (const [key, childMsg] of children) {
+      // 检查是否匹配选中节点（key + path + msgIndex）
+      if (
+        key === selectedNode.key &&
+        (childMsg.path || '') === (selectedNode.path || '') &&
+        currentMsgIndex === selectedNode.msgIndex
+      ) {
+        return true
+      }
+      // 递归检查子节点
+      if (checkNode(childMsg, currentLevel + 1, currentMsgIndex)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  return checkNode(message, 0, messages.indexOf(message))
+}
+
 function rebuildTreeNodes() {
   const nodeMap = new Map()
 
