@@ -235,6 +235,19 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-color: #e0e0e0;
     }
+    /* 选中节点高亮 */
+    .log-item-selected {
+      background: linear-gradient(135deg, #e6f4ff 0%, #e6f7ff 100%);
+      border-color: #1890ff;
+      box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+    }
+    .log-item-selected .log-item-header {
+      background: linear-gradient(135deg, #e6f4ff 0%, #fff 100%);
+    }
+    .log-item-selected .log-key {
+      color: #1890ff;
+      font-weight: 700;
+    }
     .log-item-header {
       display: flex;
       align-items: center;
