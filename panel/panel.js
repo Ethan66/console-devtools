@@ -350,7 +350,6 @@ function handleNodeSelect(nodeId) {
   const node = treeNodes.find((n) => n.id === nodeId)
   if (node && filterInputEl) {
     filterInputEl.value = node.key
-    selectedNodeKey = node.key // 只用于高亮，不用于过滤
     filterKeyword = '' // 清空筛选关键字，显示完整树
     keyboardIndex = -1
     render()
