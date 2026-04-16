@@ -325,6 +325,7 @@ function handleFocus() {
 function handleFilter(e) {
   filterKeyword = String(e.target.value || '').toLowerCase()
   selectedNodeId = null
+  selectedNodeKey = null // 用户手动输入时清除选中状态
   keyboardIndex = -1
   render()
   if (filterKeyword) showDropdown()
