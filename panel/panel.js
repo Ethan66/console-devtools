@@ -67,21 +67,6 @@ function containsKeyword(message, keyword) {
   return checkNode(message)
 }
 
-// 判断消息是否包含选中的节点或其祖先
-function containsSelectedNode(message, selectedNode) {
-  if (!selectedNode) return true
-
-  // 检查当前消息的 msgIndex 是否匹配
-  const msgIndex = messages.indexOf(message)
-  if (msgIndex !== selectedNode.msgIndex) {
-    return false
-  }
-
-  // 选中节点就是当前消息的顶级节点或其子节点，都应该显示
-  // 因为 selectedNode.msgIndex 已经确定是从这条消息来的
-  return true
-}
-
 function rebuildTreeNodes() {
   const nodeMap = new Map()
 
