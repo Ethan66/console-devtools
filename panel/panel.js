@@ -169,6 +169,11 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
     const itemEl = document.createElement('div')
     itemEl.className = 'log-item'
 
+    // 如果不是顶层节点（level > 0），去掉边框样式
+    if (level > 0) {
+      itemEl.classList.add('log-item-no-border')
+    }
+
     // 检查是否是选中的节点：匹配 msgIndex、key 和 path
     const isSelected = selectedNode &&
       currentMsgIndex === selectedNode.msgIndex &&
@@ -195,11 +200,29 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
     const pathValue = childMsg.path || ''
     const MAX_PATH_LENGTH = 30
 
-    // 左侧：折叠图标 + key
+    // 左侧：折叠图标 + key + 复制按钮
     const leftContainer = document.createElement('div')
     leftContainer.className = 'log-header-left'
     leftContainer.appendChild(iconEl)
     leftContainer.appendChild(keyEl)
+
+    // 添加整个节点的复制按钮
+    const nodeCopyBtn = document.createElement('button')
+    nodeCopyBtn.className = 'copy-btn-node'
+    nodeCopyBtn.textContent = '复制'
+    nodeCopyBtn.title = '复制整个节点数据'
+    nodeCopyBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      // 将 key 和 childMsg 组合成完整对象
+      const nodeData = JSON.stringify({ [key]: childMsg }, null, 2)
+      navigator.clipboard.writeText(nodeData).then(() => {
+        nodeCopyBtn.textContent = '已复制'
+        setTimeout(() => {
+          nodeCopyBtn.textContent = '复制'
+        }, 1000)
+      })
+    })
+    leftContainer.appendChild(nodeCopyBtn)
 
     headerEl.appendChild(leftContainer)
 
@@ -252,58 +275,116 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
       paramsRowEl.className = 'log-row'
       paramsRowEl.style.flexDirection = 'column'
       paramsRowEl.style.alignItems = 'flex-start'
+      paramsRowEl.style.paddingLeft = `${level * 16 + 8}px` // 与 header 的 paddingLeft 一致
+
+      const paramsContent = JSON.stringify(childMsg.params, null, 2)
+
+      // params 标签、数据按钮、复制按钮在同一行
+      const paramsHeaderEl = document.createElement('div')
+      paramsHeaderEl.style.display = 'flex'
+      paramsHeaderEl.style.alignItems = 'center'
+      paramsHeaderEl.style.width = '100%'
+      paramsHeaderEl.style.marginBottom = '4px'
 
       const paramsLabelEl = document.createElement('span')
       paramsLabelEl.className = 'log-label'
       paramsLabelEl.textContent = 'params:'
 
+      const dataToggleBtn = document.createElement('button')
+      dataToggleBtn.className = 'data-toggle-btn'
+      dataToggleBtn.textContent = '数据'
+      dataToggleBtn.dataset.expanded = 'false'
+
+      const paramsCopyBtn = document.createElement('button')
+      paramsCopyBtn.className = 'copy-btn-params'
+      paramsCopyBtn.textContent = '复制'
+      paramsCopyBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(paramsContent).then(() => {
+          paramsCopyBtn.textContent = '已复制'
+          setTimeout(() => {
+            paramsCopyBtn.textContent = '复制'
+          }, 1000)
+        })
+      })
+
+      paramsHeaderEl.appendChild(paramsLabelEl)
+      paramsHeaderEl.appendChild(dataToggleBtn)
+      paramsHeaderEl.appendChild(paramsCopyBtn)
+      paramsRowEl.appendChild(paramsHeaderEl)
+
       const paramsPreEl = document.createElement('pre')
       paramsPreEl.className = 'log-json'
-      const paramsContent = JSON.stringify(childMsg.params, null, 2)
       paramsPreEl.textContent = paramsContent
+      paramsPreEl.style.display = 'none' // 默认隐藏
 
-      const MAX_HEIGHT = 500
+      const MAX_HEIGHT = 400
 
-      paramsRowEl.appendChild(paramsLabelEl)
       paramsRowEl.appendChild(paramsPreEl)
       contentEl.appendChild(paramsRowEl)
 
-      // 添加到 DOM 后检查是否溢出
-      requestAnimationFrame(() => {
-        const isOverflow = paramsPreEl.scrollHeight > MAX_HEIGHT
+      // 数据按钮点击事件
+      dataToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const isExpanded = dataToggleBtn.dataset.expanded === 'true'
 
-        if (isOverflow) {
-          paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
-          paramsPreEl.style.overflow = 'hidden'
-          paramsPreEl.classList.add('log-json-collapsed')
+        if (isExpanded) {
+          // 收起：隐藏数据并移除展开按钮
+          paramsPreEl.style.display = 'none'
+          dataToggleBtn.dataset.expanded = 'false'
+          dataToggleBtn.classList.remove('expanded')
 
-          // 创建展开按钮
-          const expandBtn = document.createElement('button')
-          expandBtn.className = 'expand-content-btn'
-          expandBtn.innerHTML = '▼'
-          expandBtn.title = '展开'
-          expandBtn.addEventListener('click', (e) => {
-            e.stopPropagation()
-            const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
-            if (isCollapsed) {
-              paramsPreEl.classList.remove('log-json-collapsed')
-              paramsPreEl.style.maxHeight = 'none'
-              paramsPreEl.style.overflow = 'auto'
-              expandBtn.innerHTML = '▲'
-              expandBtn.title = '收起'
-              expandBtn.classList.add('expanded')
-            } else {
-              paramsPreEl.classList.add('log-json-collapsed')
+          // 移除展开按钮（如果存在）
+          const existingExpandBtn = paramsRowEl.querySelector('.expand-content-btn')
+          if (existingExpandBtn) {
+            existingExpandBtn.remove()
+          }
+        } else {
+          // 展开：显示数据并检查是否需要展开按钮
+          paramsPreEl.style.display = 'block'
+          dataToggleBtn.dataset.expanded = 'true'
+          dataToggleBtn.classList.add('expanded')
+
+          // 添加到 DOM 后检查是否溢出
+          requestAnimationFrame(() => {
+            const isOverflow = paramsPreEl.scrollHeight > MAX_HEIGHT
+
+            if (isOverflow) {
               paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
               paramsPreEl.style.overflow = 'hidden'
-              expandBtn.innerHTML = '▼'
-              expandBtn.title = '展开'
-              expandBtn.classList.remove('expanded')
-              paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              paramsPreEl.classList.add('log-json-collapsed')
+
+              // 创建展开按钮（如果不存在）
+              if (!paramsRowEl.querySelector('.expand-content-btn')) {
+                const expandBtn = document.createElement('button')
+                expandBtn.className = 'expand-content-btn'
+                expandBtn.innerHTML = '▼'
+                expandBtn.title = '展开'
+                expandBtn.addEventListener('click', (e) => {
+                  e.stopPropagation()
+                  const isCollapsed = paramsPreEl.classList.contains('log-json-collapsed')
+                  if (isCollapsed) {
+                    paramsPreEl.classList.remove('log-json-collapsed')
+                    paramsPreEl.style.maxHeight = 'none'
+                    paramsPreEl.style.overflow = 'auto'
+                    expandBtn.innerHTML = '▲'
+                    expandBtn.title = '收起'
+                    expandBtn.classList.add('expanded')
+                  } else {
+                    paramsPreEl.classList.add('log-json-collapsed')
+                    paramsPreEl.style.maxHeight = `${MAX_HEIGHT}px`
+                    paramsPreEl.style.overflow = 'hidden'
+                    expandBtn.innerHTML = '▼'
+                    expandBtn.title = '展开'
+                    expandBtn.classList.remove('expanded')
+                    paramsPreEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                })
+
+                paramsRowEl.appendChild(expandBtn)
+              }
             }
           })
-
-          paramsRowEl.appendChild(expandBtn)
         }
       })
     }
