@@ -247,16 +247,6 @@ function createLogNode(message, level, keyword = '', selectedKey = null, isParen
 function render() {
   if (!logContentEl) return
 
-  let filtered = messages
-  if (filterKeyword) {
-    filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
-  }
-
-  if (filtered.length === 0) {
-    logContentEl.innerHTML = `<div class="empty-state">${messages.length === 0 ? '暂无日志数据' : '未找到匹配节点'}</div>`
-    return
-  }
-
   // 获取选中节点的 key 用于高亮
   let selectedKey = null
   if (selectedNodeId) {
@@ -264,6 +254,18 @@ function render() {
     if (selectedNode) {
       selectedKey = selectedNode.key
     }
+  }
+
+  // 当有选中节点时，显示所有消息，让选中的节点高亮
+  // 当没有选中节点时，使用 filterKeyword 过滤
+  let filtered = messages
+  if (filterKeyword && !selectedKey) {
+    filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
+  }
+
+  if (filtered.length === 0) {
+    logContentEl.innerHTML = `<div class="empty-state">${messages.length === 0 ? '暂无日志数据' : '未找到匹配节点'}</div>`
+    return
   }
 
   logContentEl.innerHTML = ''
