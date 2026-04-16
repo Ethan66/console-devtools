@@ -154,23 +154,23 @@ function hasMatchingChild(message, keyword) {
   return children.some(([, child]) => hasMatchingChild(child, keyword))
 }
 
-function createLogNode(message, level, keyword = '', selectedKey = null, isParentSelected = false) {
+function createLogNode(message, level, keyword = '', selectedKey = null) {
   const container = document.createElement('div')
   container.className = 'log-node'
 
   getChildEntries(message).forEach(([key, childMsg]) => {
-    // 检查是否是选中的节点
-    const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
-
-    // 如果有选中的节点，只显示选中节点及其后代节点
-    if (selectedKey && !isSelected && !isParentSelected) {
-      return
+    if (keyword) {
+      const selfMatch = key.toLowerCase().includes(keyword)
+      if (!selfMatch && !hasMatchingChild(childMsg, keyword)) {
+        return
+      }
     }
 
     const itemEl = document.createElement('div')
     itemEl.className = 'log-item'
 
     // 检查是否是选中的节点
+    const isSelected = selectedKey && key.toLowerCase() === selectedKey.toLowerCase()
     if (isSelected) {
       itemEl.classList.add('log-item-selected')
     }
@@ -225,8 +225,7 @@ function createLogNode(message, level, keyword = '', selectedKey = null, isParen
     }
 
     if (getChildEntries(childMsg).length > 0) {
-      // 递归时传递 isParentSelected：如果当前节点是选中的节点或父节点已选中，则子节点也显示
-      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedKey, isSelected || isParentSelected))
+      contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedKey))
     }
 
     let expanded = true
@@ -247,6 +246,16 @@ function createLogNode(message, level, keyword = '', selectedKey = null, isParen
 function render() {
   if (!logContentEl) return
 
+  let filtered = messages
+  if (filterKeyword) {
+    filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
+  }
+
+  if (filtered.length === 0) {
+    logContentEl.innerHTML = `<div class="empty-state">${messages.length === 0 ? '暂无日志数据' : '未找到匹配节点'}</div>`
+    return
+  }
+
   // 获取选中节点的 key 用于高亮
   let selectedKey = null
   if (selectedNodeId) {
@@ -254,18 +263,6 @@ function render() {
     if (selectedNode) {
       selectedKey = selectedNode.key
     }
-  }
-
-  // 当有选中节点时，显示所有消息，让选中的节点高亮
-  // 当没有选中节点时，使用 filterKeyword 过滤
-  let filtered = messages
-  if (filterKeyword && !selectedKey) {
-    filtered = filtered.filter((msg) => containsKeyword(msg, filterKeyword))
-  }
-
-  if (filtered.length === 0) {
-    logContentEl.innerHTML = `<div class="empty-state">${messages.length === 0 ? '暂无日志数据' : '未找到匹配节点'}</div>`
-    return
   }
 
   logContentEl.innerHTML = ''
@@ -348,13 +345,10 @@ function handleNodeSelect(nodeId) {
   selectedNodeId = nodeId
   const node = treeNodes.find((n) => n.id === nodeId)
   if (node && filterInputEl) {
-    // 只更新输入框显示，不改变 filterKeyword，避免过滤掉子节点
     filterInputEl.value = node.key
-    // 清空 filterKeyword，让下拉树显示全部节点
-    filterKeyword = ''
+    filterKeyword = node.key.toLowerCase()
     keyboardIndex = -1
     render()
-    renderTreeDropdown()
   }
   hideDropdown()
 }
