@@ -193,6 +193,7 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
 
     // path 值
     const pathValue = childMsg.path || ''
+    const MAX_PATH_LENGTH = 20
 
     headerEl.appendChild(iconEl)
     headerEl.appendChild(keyEl)
@@ -205,7 +206,14 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
 
       const pathEl = document.createElement('span')
       pathEl.className = 'log-path-value'
-      pathEl.textContent = pathValue
+      pathEl.title = pathValue // 完整路径放在 title 属性，鼠标悬停显示
+
+      // 如果路径超过 20 个字符，只显示最后 20 个字符，前面加省略号
+      if (pathValue.length > MAX_PATH_LENGTH) {
+        pathEl.textContent = '...' + pathValue.slice(-MAX_PATH_LENGTH)
+      } else {
+        pathEl.textContent = pathValue
+      }
 
       const copyBtn = document.createElement('button')
       copyBtn.className = 'copy-btn-inline'
