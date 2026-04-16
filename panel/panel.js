@@ -258,17 +258,17 @@ function render() {
   }
 
   // 获取选中节点的 key 用于高亮
-  let selectedKey = null
-  if (selectedNodeId) {
+  let highlightKey = selectedNodeKey
+  if (!highlightKey && selectedNodeId) {
     const selectedNode = treeNodes.find((n) => n.id === selectedNodeId)
     if (selectedNode) {
-      selectedKey = selectedNode.key
+      highlightKey = selectedNode.key
     }
   }
 
   logContentEl.innerHTML = ''
   filtered.forEach((msg) => {
-    logContentEl.appendChild(createLogNode(msg, 0, filterKeyword, selectedKey))
+    logContentEl.appendChild(createLogNode(msg, 0, filterKeyword, highlightKey))
   })
 
   if (treeDropdownEl && treeDropdownEl.classList.contains('show')) {
