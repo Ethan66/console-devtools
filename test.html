@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -56,18 +56,31 @@
 
   <script>
     const testMessage = {
-    "onTest": {
-        "params": { a: { key: 1, key2: { c: 2}} },
+      "onTest": {
+        "params": { a: { key: 1, key2: { c: 2 } } },
         "path": "src/pages/demo/sdkDemo.vue:150",
+        "api": [
+          "apiRepay.applyRepay.post"
+        ],
         "zfn": {
-            "[computed] app": {
+          "[computed] app": {
+            "params": {},
+            "path": "src/pages/demo/sdkDemo.vue:138",
+            "api": [],
+            "zfn": {
+              "loadRecord": {
                 "params": {},
-                "path": "src/pages/demo/sdkDemo.vue:138",
+                "path": "src/pages/demo/sdkDemo.vue:142",
+                "api": [
+                  "apiRepay.getBorrowRecordList.post"
+                ],
                 "zfn": {}
+              }
             }
+          }
         }
+      }
     }
-}
 
     function useConsoleDevtools() {
       const EXTENSION_ID_KEY = '__CONSOLE_DEVTOOLS_EXTENSION_ID__'
@@ -139,14 +152,8 @@
           sendToExtension(testMessage)
         }, i * 100)
       }
-      console.log('✓ 多条消息已发送')
+      console.log('✓ 5条测试消息已发送')
     })
-
-    // 自动发送一条消息用于演示
-    setTimeout(() => {
-      sendToExtension(testMessage)
-      console.log('✓ 自动发送的测试消息')
-    }, 1000)
   </script>
 </body>
 </html>

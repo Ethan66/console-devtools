@@ -1,4 +1,4 @@
-﻿// panel/panel.js
+// panel/panel.js
 console.log('[Panel] panel.js loaded')
 
 let messages = []
@@ -15,16 +15,21 @@ let exportBtnEl = null
 let treeDropdownEl = null
 let port = null
 
-const META_NODE_KEYS = new Set(['params', 'path', 'zfn'])
+const META_NODE_KEYS = new Set(['params', 'path', 'api', 'zfn'])
 
 function isObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isNonEmptyArray(value) {
+  return Array.isArray(value) && value.length > 0
 }
 
 function isTreeNode(value) {
   return isObject(value) && (
     Object.prototype.hasOwnProperty.call(value, 'params') ||
     Object.prototype.hasOwnProperty.call(value, 'path') ||
+    Object.prototype.hasOwnProperty.call(value, 'api') ||
     Object.prototype.hasOwnProperty.call(value, 'zfn')
   )
 }
@@ -389,6 +394,27 @@ function createLogNode(message, level, keyword = '', selectedNode = null, curren
       })
     }
 
+    if (isNonEmptyArray(childMsg.api)) {
+      const apiRowEl = document.createElement('div')
+      apiRowEl.className = 'log-row'
+      apiRowEl.style.paddingLeft = `${(level + 1) * 16 + 8}px`
+      apiRowEl.style.gap = '8px'
+
+      const apiLabelEl = document.createElement('span')
+      apiLabelEl.className = 'log-label'
+      apiLabelEl.textContent = 'api:'
+      apiLabelEl.style.minWidth = 'auto'
+
+      const apiValueEl = document.createElement('span')
+      apiValueEl.className = 'log-value'
+      apiValueEl.style.flex = '1'
+      apiValueEl.textContent = childMsg.api.join(', ')
+
+      apiRowEl.appendChild(apiLabelEl)
+      apiRowEl.appendChild(apiValueEl)
+      contentEl.appendChild(apiRowEl)
+    }
+
     if (getChildEntries(childMsg).length > 0) {
       contentEl.appendChild(createLogNode(childMsg, level + 1, keyword, selectedNode, currentMsgIndex))
     }
@@ -706,3 +732,4 @@ function connectToBackground() {
 }
 
 document.addEventListener('DOMContentLoaded', initPanel)
+

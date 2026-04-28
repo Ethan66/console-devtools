@@ -4,6 +4,7 @@
 export interface LogMessage {
   params: any
   path: string
+  api: string[]
   zfn: Record<string, LogMessage>
 }
 

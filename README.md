@@ -55,10 +55,12 @@ yarn build
 window.postMessage({
   params: { /* 参数 */ },
   path: "文件路径:行号",
+  api: ["api.module.method.post"],
   zfn: {
     functionName: {
       params: { /* 参数 */ },
       path: "文件路径:行号",
+      api: [],
       zfn: { /* 子函数 */ }
     }
   }
@@ -71,6 +73,7 @@ window.postMessage({
 interface LogMessage {
   params: any        // 函数参数
   path: string       // 源码路径（格式: "文件路径:行号"）
+  api: string[]      // 当前节点关联的 API 调用链
   zfn: Record<string, LogMessage>  // 子函数对象
 }
 ```

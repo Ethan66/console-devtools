@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 创建面板 - 使用原生 JavaScript 版本（避免 Vue 的 CSP 问题）
   chrome.devtools.panels.create(
-    'Console DevTools',
+    'Track',
     '',
     'panel/index.native.html',
     function(panel) {

@@ -30,6 +30,11 @@
           <pre class="log-json">{{ JSON.stringify(childMsg.params, null, 2) }}</pre>
         </div>
 
+        <div v-if="hasApi(childMsg.api)" class="log-row">
+          <span class="log-label">api:</span>
+          <span class="log-value">{{ childMsg.api.join(', ') }}</span>
+        </div>
+
         <log-node
           v-if="childMsg.zfn && Object.keys(childMsg.zfn).length > 0"
           :message="childMsg"
@@ -49,7 +54,7 @@ interface Props {
   level?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   level: 0
 })
 
@@ -61,6 +66,10 @@ function toggleExpand(key: string) {
   } else {
     expandedKeys.value.add(key)
   }
+}
+
+function hasApi(api: LogMessage['api'] | undefined): api is string[] {
+  return Array.isArray(api) && api.length > 0
 }
 
 async function copyPath(path: string) {
