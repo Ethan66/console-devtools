@@ -12,6 +12,36 @@ function isArrayPayload(payload) {
   return Array.isArray(payload)
 }
 
+function bufferMessage(message) {
+  if (messageBuffer.length >= MAX_BUFFER_SIZE) {
+    messageBuffer.shift()
+  }
+  messageBuffer.push(message)
+  console.log('[Background] Message buffered, total:', messageBuffer.length)
+}
+
+function clearPanelPort(port) {
+  if (!port || panelPort === port) {
+    panelPort = null
+  }
+}
+
+function forwardToPanel(message) {
+  if (!panelPort) {
+    return false
+  }
+
+  try {
+    panelPort.postMessage(message)
+    console.log('[Background] Forwarded successfully')
+    return true
+  } catch (error) {
+    console.error('[Background] Forward failed:', error)
+    clearPanelPort(panelPort)
+    return false
+  }
+}
+
 // 监听 content script 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('[Background] Received message:', request.type, request.data ? 'with data' : 'no data', 'from:', sender.tab?.id || 'devtools')
@@ -30,14 +60,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // 如果有 panel 连接，直接转发
     if (panelPort) {
       console.log('[Background] Forwarding to panel')
-      panelPort.postMessage(request.data)
+      if (!forwardToPanel(request.data)) {
+        bufferMessage(request.data)
+      }
     } else {
       // 否则缓存消息
-      if (messageBuffer.length >= MAX_BUFFER_SIZE) {
-        messageBuffer.shift() // 移除最旧的消息
-      }
-      messageBuffer.push(request.data)
-      console.log('[Background] Message buffered, total:', messageBuffer.length)
+      bufferMessage(request.data)
     }
     sendResponse({ status: 'ok' })
   }
@@ -64,7 +92,7 @@ chrome.runtime.onConnect.addListener((port) => {
     // 监听 panel 断开
     port.onDisconnect.addListener(() => {
       console.log('[Console DevTools] Panel disconnected')
-      panelPort = null
+      clearPanelPort(port)
     })
   }
 })
@@ -87,19 +115,12 @@ chrome.runtime.onConnectExternal.addListener((port) => {
 
       if (panelPort) {
         console.log('[Background] Forwarding to panel')
-        try {
-          panelPort.postMessage(message)
-          console.log('[Background] Forwarded successfully')
-        } catch (e) {
-          console.error('[Background] Forward failed:', e)
+        if (!forwardToPanel(message)) {
+          bufferMessage(message)
         }
       } else {
         // 缓存消息
-        if (messageBuffer.length >= MAX_BUFFER_SIZE) {
-          messageBuffer.shift()
-        }
-        messageBuffer.push(message)
-        console.log('[Background] Message buffered (panel not connected), total:', messageBuffer.length)
+        bufferMessage(message)
       }
     })
 
